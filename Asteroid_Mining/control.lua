@@ -1,4 +1,4 @@
 --Resets miner module recipes.
 require("scripts/recipes.lua")
 
---require("scripts/gui.lua")
+require("scripts/adv-mining.lua")

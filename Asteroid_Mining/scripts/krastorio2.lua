@@ -56,12 +56,3 @@ function setmixed(processmixed)
         return normal, expensive
     end
 end
-
---If Krastorio2 is installed and crafting category for crushing exists,
---we'll use that for processing chunks
-function changecrafting()
-    if data.raw["recipe-category"]["crushing"] then
-        return "crushing"
-    end
-    return nil
-end
