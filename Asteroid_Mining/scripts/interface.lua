@@ -1,0 +1,1 @@
+--Eventually this will allow other mods to specify how common their resources are, and possibly limits

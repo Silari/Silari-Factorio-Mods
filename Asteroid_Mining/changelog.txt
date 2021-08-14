@@ -1,0 +1,86 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.9.7
+  Bugfixes:
+    - Fixed Angel's Refining support so it won't overwrite that mods flotation chunks.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.6
+  Features:
+    - Added default option to make resource chunk processing recipes use Krastorio2's Crushers for processing if present.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.5
+  Features:
+    - Added modules for brevven's titanium and lead mods.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.4
+  Info:
+    - Release for Factorio 1.1.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.3
+  Features:
+    - Added modules for Krastorio 2's raw-imersite and raw-rare-metals
+      - Mixed module is not currently rebalanced, though the resource specific modules are.
+  Bugfixes:
+    - Added missing locale string for the crafting tab.
+    - Messages aren't logged for setting resources unless they're actually set (ie the mod is present)
+---------------------------------------------------------------------------------------------------
+Version: 0.9.2
+  Features:
+    - Added mixed asteroid balancing for vanilla + Simple Silicon, uses the stone->0.5 quartz recipe
+      - Stone chunks are added to the mixed asteroid if Simple Silicon is installed, but the amount is not changed depending on what other mods are installed.
+      - This means it's fine in vanilla, but it is not guaranteed to be enough with other mods, including Bob's.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.1
+  Features:
+    - Added option to allow productivity modules in all asteroid chunk recipes.
+    - Added option to force recipes to not use Angel's Ore Crushers even if they are available.
+    - Added setting to move (most) Asteroid Mining items to their own tab in the crafting menu.
+      - Processing chunks to ores do not change their category, though some mods (Angels) change their tab.
+    - Added backend improvements to allow recipes to have additional information appended to the asteroid chunk descriptions.
+    - Hidden settings added: Setting 'astmine-enableminer' to false will disable all mining modules but keep chunk recipes, which could allow for alternate methods of asteroid chunk creation.
+      - This is mainly for a future update that adds a different method of resource generation, but other mods could use this as well.
+  Changes:
+    - Lowered the minimum required versions for several mods to allow usage with Seablock Mod Pack 0.4.10
+---------------------------------------------------------------------------------------------------
+Version: 0.9.0
+  Features:
+    - Added support for Omnimatter's Omnite, Dark Matter Replicator's tenemut, and Simple Silicons Quartz.
+    - Sulfur will now be available via asteroid mining if any mod has added 'Sulfur' as a mineable resource.
+  Bugfixes:
+    - Corrected missing tungsten tinting.
+    - Corrected cut off sentence in 0.8.1 change log.
+    - Code to autogenerate mining module icons fixed to allow for icon_size property outside of icons property.
+  Changes:
+    - Updated tinting for Bobmonium to be more brown, rather than black.
+    - Updated tinting for Topaz ore to be a bit more orange, rather than yellow.
+---------------------------------------------------------------------------------------------------
+Version: 0.8.1
+  Features:
+    - Updated mod's description in info.json.
+    - Redid icons to make use of the original resource's icon where possible, to help better differentiate miner modules.
+---------------------------------------------------------------------------------------------------
+Version: 0.8.0
+  Features:
+    - Added very partial support for Angel's Mods. All ores (except unsorted gems) should have a miner module available for it.
+        - If available, asteroid and resource chunks will be processed in the ore crushers, rather than assemblers/by hand.
+    - Changed coal tinting to be slightly darker. This helps differentiate it from stone and lead chunks.
+  Bugfixes:
+    - Added dependencies for base and Bob's Mods to ensure proper ordering on load.
+---------------------------------------------------------------------------------------------------
+Version: 0.7.0
+  Features:
+    - Added partial support for Bob's Mods. All ores (except unsorted gems) should have a miner module available for it. 
+    - Mixed mining module should give appropriate amount of all ores to pay for a rocket, plus some profit. Sulfur and oil products are still not included. Mainly, this supports changes caused by Bobs Ores, Bobs Metals, Bobs Electronics, and Bobs modules, with default options. Due to the nature of these mods, it may not be a net gain in resources if other mods are installed, or options are changed. Damn you Bob and your wide array of useful, modular, and configurable mods!
+---------------------------------------------------------------------------------------------------
+Version: 0.6.1
+  Bugfixes:
+    - Corrected some issues in the descriptions.
+    - Mining modules now have a color mask to help identify what they are, including a box around the icon. They aren't as easily identifiable as the chunks are, but are better than the literal nothing of before.
+---------------------------------------------------------------------------------------------------
+Version: 0.6.0
+  Features:
+    - Added resource specific mining modules. These allow you to mine for only one resource, at the cost of returning fewer total resources, though only about 8% less.
+    - New items and recipes to support the above, with some tweaks to recipes to prevent them from showing up in raw resource calculations.
+---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+  Info:
+    - Initial release, with basic features.
