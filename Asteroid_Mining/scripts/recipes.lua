@@ -15,6 +15,23 @@ function reset_recipes(changed)
                 end
             end
         end
+        -- These are the two Advanced mode researches
+        if technologies["ast-min-upgrades"] and technologies["ast-min-upgrades"].researched then
+            for nindex, effect in pairs(technologies["ast-min-upgrades"].effects) do
+                --Set the recipe as researched.
+                if effect.type == "unlock-recipe" then
+                    recipes[effect.recipe].enabled = true
+                end
+            end
+        end
+        if technologies["ast-min-resminer"] and technologies["ast-min-resminer"].researched then
+            for nindex, effect in pairs(technologies["ast-min-resminer"].effects) do
+                --Set the recipe as researched.
+                if effect.type == "unlock-recipe" then
+                    recipes[effect.recipe].enabled = true
+                end
+            end
+        end
     end
 end
 
