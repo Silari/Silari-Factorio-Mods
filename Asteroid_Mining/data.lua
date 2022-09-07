@@ -1,15 +1,4 @@
---Test map fixes:
-
---Double up unloaders for RC dropoff
---Set personal logistics for iron plates and copper for mining drill payload 115 23
---Add second fuel inserter for silo
-
-
 --TO FIX:
---Add optional Asteroid Mining category for items. Note that other mods may use their own category for some items
-
---Add more ores! 
-
 --Maybe redo how the addition works so there's no chance of adding a resource twice
 --For example, both bobs ores and angels smelting add lead. As is I think it gets added twice, the second overwriting
 --the first. This isn't an error or anything, but is a waste of time. Maybe add the commands to run to a table that
@@ -18,22 +7,7 @@
 --item, which wouldn't matter since I copy/paste those anyway. BONUS: I can use that table to set the mixed asteroid if
 --an option for random results is selected - # of expected chunks/# of chunk types = average for each type.
 
---Check if it works with seablock?
-
 --Crafting machine tints? Not sure that's really used with the current setup
-
---POSSIBLY go through and have a test setup so before making the chunks, check if any recipe uses the ore it makes.
---With Angel's only (no Bobs) it's not actually using any of the ores beyond vanilla
-
---Asteroid Mining:
---Launch a (mining satellite/mining drill) up to space, get sent back asteroid parts. Process those parts for %chance of various ores.
-
---Later version will instead have a single building - the asteroid catcher, which generates the chunks. Send up miner
---module, get building. It has a set of recipes for generating the mixed or specific chunks. Send up a Miner Linking 
---module (made up of 4 buildings plus parts) get a 2nd tier asteroid catcher. Send up 4 of those plus parts, get highest
---tier asteroid catcher.
---Possibly first need a research which requires sending an asteroid slinger into orbit that's responsible for catching
---the shipped asteroids and deorbiting them. Similar to how seablock locks researches behind crafting an item
 
 --Cost of a rocket: 49100 iron ore, 92500 copper ore,  9500 coal, (197500 petro (219444 oil, or 993750 oil))
 --Needed chunks:     2046 iron chnk, 3855 copper chunk, 396 coal
@@ -42,6 +16,11 @@
 --Cost with prod3s: 14655 iron ore, 24668 copper ore, 2784 coal
 --Needs 240 iron and 60 copper for asteroid miner
 --Total chunks expected: 6470 - 6000 for resource specific miner
+
+--Cost with Prod Mods: 35071 io, 66071 co, 6785 coal
+-- 1798.809 ore per minute.
+-- 592.527 ore per minute with everything prod3'd as high as possible. NOT counting mining productivity.
+-- So just above an hour ROI. Not bad.
 
 -- Expensive mode:
 --Cost of a rocket: 98200 iron ore, 204000 copper ore, 29000 coal
@@ -68,21 +47,21 @@
 --Without Either  : 0 Quartz, 0 stone, 204000 Copper, 29000 Coal, 0 tin, 0 galena, 0 Gold, 82200 iron
 --Without Metals  : 0 quartz, 0 stone, 32833 copper, 22000 coal, 0 tin, 0 galena, 0 gold, 30350 iron
 
---The default category. May be changed if certain mods are installed.
-
 require("scripts/icons.lua") -- Has generateicons function
-reccategory = "crafting" -- Recipe category for asteroid processing to use
 
 require("scripts/groups.lua") -- Handles setting our recipe groups
+require("scripts/category.lua") -- Sets our asteroid processing category based on settings and installed mods
 
 allowprod = settings.startup["astmine-allowprod"].value
 useminer = settings.startup["astmine-enableminer"].value
 
 --Adds given recipe to prod modules allowed list
 function addmodules(name)
-    table.insert(data.raw.module["productivity-module"].limitation, name)
-    table.insert(data.raw.module["productivity-module-2"].limitation, name)
-    table.insert(data.raw.module["productivity-module-3"].limitation, name)
+    if useminer then -- Only add these if we're actually enabled.
+        table.insert(data.raw.module["productivity-module"].limitation, name)
+        table.insert(data.raw.module["productivity-module-2"].limitation, name)
+        table.insert(data.raw.module["productivity-module-3"].limitation, name)
+    end
 end
 
 --Result for processing resource specific chunks
@@ -241,7 +220,7 @@ function addtype(name,atint,desc) --,pictures)
     if string.find(name,"angels-ore",1,true) then
         suffix = "-chunk-am"
     end
-    log(name .. " name:suffix " .. suffix)
+    --log(name .. " name:suffix " .. suffix)
     
     local reschunk = {
       icons = {
@@ -416,12 +395,6 @@ simpnormal, simpexpensive = setmixed(processmixed)
 require("scripts/krastorio2.lua")
 krasnormal, krasexpensive = setmixed(processmixed)
 
-
-krascat = changecrafting()
-if krascat and settings.startup["astmine-k2crushing"].value then
-    reccategory = krascat
-end
-
 --Krastorio overrides bobs/simple silicon
 --If bobs is present, it's normal/expensive results should overwrite simplesilicons
 --If it's not present, then overwrite normal/expensive with simplesilicon's if present
@@ -446,42 +419,39 @@ end
 require("scripts/angels.lua")
 --We don't currently rebalance mixed asteroid for angels
 
---If Angel's Crushing category exists and setting isn't off, use it for chunk crushing
-angelcat = changecrafting()
-if angelcat and settings.startup["astmine-crushing"].value then
-    reccategory = angelcat
-end
-
 require("scripts/singles.lua")
 --Also no rebalancing needed for singles
 
---Add our vanilla ores
-addtype("coal", {a = 0.6,r = 0,g = 0,b = 0})
-addtype("copper-ore", {a = .8,r = 255,g = 60,b = 0})
-addtype("iron-ore", {a = .8,r = 0,g = 140,b = 255})
-addtype("stone", {a = 0,b = 0,g = 0,b = 0})
-addtype("uranium-ore", {a = .8,b = 100,g = 180,b = 0})
-
---Add Bobs ores if present
-addbobs()
-
---Add Simple Silicon quartz if present
-addsimple()
-
---Add Angels ores if present
-addangels()
-
---Add Krastorio 2 ores if present
-addkras()
-
---add various single ores from mods
-addsingles()
-
---add new items
-data:extend{asteroidmixed,processmixed}
+--We don't actually add anything at all unless the option to use the basic mining modules is enabled.
 if useminer then
+    --Add our vanilla ores
+    addtype("coal", {a = 0.6,r = 0,g = 0,b = 0})
+    addtype("copper-ore", {a = .8,r = 255,g = 60,b = 0})
+    addtype("iron-ore", {a = .8,r = 0,g = 140,b = 255})
+    addtype("stone", {a = 0,b = 0,g = 0,b = 0})
+    addtype("uranium-ore", {a = .8,b = 100,g = 180,b = 0})
+
+    --Add Bobs ores if present
+    addbobs()
+
+    --Add Simple Silicon quartz if present
+    addsimple()
+
+    --Add Angels ores if present
+    addangels()
+
+    --Add Krastorio 2 ores if present
+    addkras()
+
+    --add various single ores from mods
+    addsingles()
+
+    --add new items
+    data:extend{asteroidmixed,processmixed}
     --Add recipe to rocket tech
     table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "miner-module"})
 
     data:extend{minermodule,minermodulerecipe}
 end
+
+require("prototypes/advanced.lua")

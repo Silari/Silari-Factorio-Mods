@@ -1,0 +1,746 @@
+BIG THINGS
+
+Fix up orbit surfaces in SE - they should be substituted with the surface below (if not a solar orbit)
+
+Probably disallow any surface which lacks any resources. Would need to add the check to make_resource_table - if it generates none, sub the surface to "".
+
+Double check if specific miners can gather a resource from a surface that doesn't spawn it. PRETTY sure the loop won't ever hit the resource.
+
+
+IMAGE STUFF
+Possible sprites to edit:
+Add solar panel (personal or reg) to satellite to create upgrade station.
+Spidertron-body-bottom is a flat disc
+Cargo wagon masks are flat rectangles, could group up a couple
+roboport or personal roboport equipment for the port hole.
+hr-beacon-top
+hr-01-rocket-silo-hole-light.png
+hr-02-rocket
+icons: nuclear, spidertron (tech or item), solar-energy, solar-panel-equipment, nuclear-reactor, centrifuge, substation, roboport, , solar-panel, spidertron-tintable(-mask)
+
+
+Testing resource baserate corrections: CHANGED TO AVERAGE OF THE 3!
+Iron - 200% freq - 200
+Copp - 133% Size - 133.33333730698
+Ston - 200% Rich - 200
+Sand - Base rate - 100
+Coal - 400% Freq - 400
+Uranium - 200% of all 3 - 800
+
+LATER THINGS
+-- Add in the single surface setting. Basically this has get_sub_surface always return 'nauvis' (DONE). check_surface needs adjusted to never reject any surface (DONE). So should be done. Not tested.
+
+-- Maybe add variance to size of created ore spots, average around 500 but allow for more/less
+
+-- Fix spawn function to check force of targets before spawning anything. Needs to match force.
+
+-- Anywhere that checks for a substitute must check that the sub isn't "", thus meaning it's disabled.
+    -- We have check_surface now which checks if a surface is subbed or is blacklisted (then "" it)
+
+-- Make make_resources check if an already existing resource shouldn't exist - ie it was edited at some point to be a liquid or larger or etc.
+
+-- Right now I'm assuming all resources have the resource collision layer. That may not be true - should I ignore those resources, or setup some way to force using the resource layer when spawning?
+
+-- Have the totalbaserate calculated and stored for each surface, so it doesn't need to be calculated every time gather_resources or updatetab is run.
+
+-- Test research events work properly - seems good so far, no errors, need to add stuff to tech table for further testing.
+
+-- Test renamesurface functionality
+
+-- Possibly redo spawnresources to utilize Tele_Redux dynamic sizing code. Would need switch to stored list of entities instead of find.
+
+-- Add resource specific miner adjustment ratio to /asteroid info
+
+
+-- Add in interfaces
+    -- Add in setting for substitute which causes the surface to not be valid at all for sending things. NOTE: This is now "" to disallow.
+
+--TODO Make an interface to register substitutes
+--If a substitute is set, and the surface to substitute has a substitute itself, use it instead.
+--Also setting a sub should clear/merge the table for that surface so it doesn't need to be looped through.
+--Setting a sub needs to make sure the substitute name has it's surface info setup. Note that a subname isn't NECESSARILY A SURFACE, so the create_surface event can't be assumed to have made it.
+--If a substitute is set, and the surface to sub to doesn't have surface data for a force, copy it over to the new surface.
+
+--Remote function to clear info for surface_name
+
+
+--TODO Make interface to register a new resource as default.
+--TODO Make interface to set resources for a surface.
+--TODO Make interface to set technology to add miners - need techname, oretype, level, count?
+	--TODO Make interface to set the surface to give the tech too. May need to put this in with the rest of the info
+
+--TODO Make max resource rate dependent on surface size for Space Expansion
+
+--TODO Add a blacklist to the resources, probably in a constants file so it can be used in data and control stages.
+
+--TODO Sprite for upgrade items and mixed miner module
+
+--TODO Design for the targeter
+
+--TODO Animation for ore spawning. This would work better with them spaced out a bit more, like the TODO in control to copy tele-redux code.
+
+MAYBE THINGS
+-- TODO Split this into multiple scripts to group things. One for utility, one for rocket launch, one for ore update and placement, etc. Assuming it is big enough to need that kind of organization. Might not.
+
+-- Possibly make rocketlaunch confirm resource exists for miner? Shouldn't be needed since we programmatically make modules.
+
+-- Maybe add research to up the size of spawned resource patches.
+
+-- MAYBE put the upgrade module in with rocket silo tech, and have the upgrade tech set to enabled = false + visible_when_disabled = true, so I can use the launch event for upgrade module to set it enabled. That'd stop people from sending the 5/25 before sending the station. At least on ONE surface. wouldn't stop launching station on nauvis then launching upgrade from another surface. -- PROLLY NOT
+
+--TODO Setting for require_fluid resources - three options: disallow, no random spawn, allow. No random spawn will still make them but they'll be disallowed from being randomly selected by the spawn option. Not sure if I can do that easily. Mostly done, no setting for 'no random spawn' yet.
+
+
+{
+  child_indexes = {
+    1135,
+    93,
+    95
+  },
+  climate = {},
+  controls = {
+    coal = {
+      frequency = 1,
+      richness = 6,
+      size = 1
+    },
+    ["copper-ore"] = {
+      frequency = 1,
+      richness = 6,
+      size = 1
+    },
+    ["crude-oil"] = {
+      frequency = 1,
+      richness = 6,
+      size = 1
+    },
+    ["iron-ore"] = {
+      frequency = 1,
+      richness = 6,
+      size = 1
+    },
+    ["se-beryllium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-cryonite"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-holmium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-iridium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-methane-ice"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-naquium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-vitamelange"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-vulcanite"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-water-ice"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    stone = {
+      frequency = 1,
+      richness = 6,
+      size = 1
+    },
+    ["uranium-ore"] = {
+      frequency = 1,
+      richness = 6,
+      size = 1
+    }
+  },
+  core_mining = {
+    [19513] = {
+      drill = {
+        __self = "userdata"
+      },
+      drill_unit_number = 19514,
+      force_name = "player",
+      miner = {
+        __self = 0
+      },
+      miner_unit_number = 19513,
+      position = {
+        x = 214.5,
+        y = 157.5
+      },
+      resource = {
+        __self = 0
+      },
+      surface_index = 1,
+      zone_index = 91
+    },
+    [84495] = {
+      drill = {
+        __self = 0
+      },
+      drill_unit_number = 84496,
+      force_name = "player",
+      miner = {
+        __self = 0
+      },
+      miner_unit_number = 84495,
+      position = {
+        x = 227.5,
+        y = 157.5
+      },
+      resource = {
+        __self = 0
+      },
+      surface_index = 1,
+      zone_index = 91
+    }
+  },
+  fragment_name = "se-core-fragment-omni",
+  hierarchy_index = 371,
+  index = 91,
+  inflated = true,
+  is_homeworld = true,
+  meteor_defences = {
+    [50064] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 50064
+    },
+    [50066] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 50066
+    },
+    [50086] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 50086
+    },
+    [105931] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 105931
+    },
+    [105965] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 105965
+    }
+  },
+  meteor_point_defences = {
+    [14503] = {
+      barrel = 1,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 14503
+    },
+    [26798] = {
+      barrel = 1,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 26798
+    },
+    [26804] = {
+      barrel = 2,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 26804
+    },
+    [26806] = {
+      barrel = 3,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 26806
+    },
+    [29675] = {
+      barrel = 2,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 29675
+    },
+    [29698] = {
+      barrel = 2,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 29698
+    },
+    [29825] = {
+      barrel = 3,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 29825
+    },
+    [33886] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 33886
+    },
+    [43457] = {
+      barrel = 3,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 43457
+    },
+    [43587] = {
+      barrel = 2,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 43587
+    },
+    [192711] = {
+      barrel = 1,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 192711
+    },
+    [500255] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 500255
+    },
+    [500259] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 500259
+    },
+    [530421] = {
+      barrel = 2,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 530421
+    }
+  },
+  name = "Nauvis",
+  next_meteor_shower = 55868689.043387957,
+  orbit_index = 92,
+  parent_index = 89,
+  planet_gravity_well = 19.405693207207122,
+  primary_resource = "stone",
+  radius = 5691.7291654647397,
+  radius_multiplier = 0.64056932072071247,
+  resources = {},
+  seed = 2612738576,
+  special_type = "homeworld",
+  star_gravity_well = 12.832050000000001,
+  surface_index = 1,
+  ticks_per_day = 25000,
+  type = "planet"
+}
+{
+  controls = {
+    aux = {
+      bias = 0.19573755864985287,
+      frequency = 0.82578956056562021
+    },
+    cliff = {
+      frequency = 0,
+      richness = 0
+    },
+    coal = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    cold = {
+      frequency = 1.4284557561552682,
+      richness = 0.20954211037606001,
+      size = 0.18182643856853247
+    },
+    ["copper-ore"] = {
+      frequency = 1.6699805729123911,
+      richness = 0.60198834374743466,
+      size = 0.89330743054985504
+    },
+    ["crude-oil"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["enemy-base"] = {
+      frequency = 0.32030069353454547,
+      richness = 0.42045661006122828,
+      size = 0.17529142070561647
+    },
+    hot = {
+      frequency = 0.3400990302941139,
+      richness = 0.54784541521221399,
+      size = 0.76844273954629907
+    },
+    ["iron-ore"] = {
+      frequency = 1.1090223246630122,
+      richness = 0.26541339479780737,
+      size = 0.14536309955068298
+    },
+    moisture = {
+      bias = 0.01314928918145597,
+      frequency = 1.4184000897992064
+    },
+    ["se-beryllium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-cryonite"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-holmium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-iridium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-methane-ice"] = {
+      frequency = 6.5113519212621505,
+      richness = 3.5068111527572907,
+      size = 7.3484692283495345
+    },
+    ["se-naquium-ore"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-vitamelange"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-vulcanite"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    ["se-water-ice"] = {
+      frequency = 0,
+      richness = -1,
+      size = 0
+    },
+    stone = {
+      frequency = 2.4349175463151784,
+      richness = 1.0609505277891069,
+      size = 1.9132233950869043
+    },
+    tree = {
+      frequency = 1,
+      richness = 0,
+      size = 0
+    },
+    trees = {
+      frequency = 1.1224840529477722,
+      richness = 0.60299118757247925,
+      size = 0.86444641351699829
+    },
+    ["uranium-ore"] = {
+      frequency = 1.2163124650941899,
+      richness = 0.32978747905651398,
+      size = 0.28841662012558661
+    }
+  },
+  hierarchy_index = 372,
+  index = 92,
+  meteor_defences = {
+    [512792] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512792
+    },
+    [512796] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512796
+    },
+    [512799] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512799
+    },
+    [512801] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512801
+    },
+    [711311] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 711311
+    },
+    [711315] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 711315
+    },
+    [711317] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 711317
+    },
+    [711321] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 711321
+    }
+  },
+  meteor_point_defences = {
+    [512953] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512953
+    },
+    [512955] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512955
+    },
+    [512983] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 512983
+    },
+    [513043] = {
+      barrel = 3,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513043
+    },
+    [513062] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513062
+    },
+    [513091] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513091
+    },
+    [513126] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513126
+    },
+    [513148] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513148
+    },
+    [513185] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513185
+    },
+    [513194] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 513194
+    },
+    [718698] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 718698
+    },
+    [725080] = {
+      barrel = 3,
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 725080
+    },
+    [729905] = {
+      charger = {
+        __self = 0
+      },
+      container = {
+        __self = 0
+      },
+      unit_number = 729905
+    }
+  },
+  name = "Nauvis Orbit",
+  next_meteor_shower = 55870213.408455066,
+  parent_index = 91,
+  primary_resource = "se-methane-ice",
+  seed = 1416960472,
+  surface_index = 2,
+  type = "orbit"
+}

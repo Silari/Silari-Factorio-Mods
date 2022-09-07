@@ -1,4 +1,28 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.9.10
+  Features:
+    - Added in real support for multiple surfaces in advanced mode. Previous implementation was a place holder that used the default mining rates (based on Nauvis resources) for every surface. Mining rates are now generated for each surface based on map generation settings. Resources which generate less than 1/min will not generate for that surface.
+        - The GUI now lists all surfaces in the drop down box, allowing you to view stats/assets for each surface.
+        - Support for Space Exploration surfaces is included, filtering out any orbital surfaces, hidden surfaces, and the like. In a future update planet/moon orbits may share the planet/moon surface data. For now, it's disallowed as orbits can get some VERY absurd resource rates.
+            - If SE is installed, surfaces will have a max rate based on the radius of the planet/moon. Right now, this is a direct multiplier based on radius / 10000 * 50. Thus a radius 5000 planet allows 25 times the base rate.
+        - Will also automatically ignore Factorissimo 2 buildings and AAI Signals special surface.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.9
+  Bugfixes:
+    - Fixed default settings using advanced mode rather than basic mode.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.8
+  Features:
+    - Added Advanced mode. This is still in beta, and needs balancing, graphics, and a lot of the expected mod support added. By default it is off. 
+        - The previous functionality is now called Basic Mode. It is currently still enabled as the default.
+    - Added brevven's tungsten resource to basic mode.
+  Modding:
+    - Mods can now require "__Asteroid_Mining__.scripts.addmodules.lua" to add their own items as asteroid chunks by calling amfunc.addtype(<name of item>, <tint mask to use>, <optional localized string to append to the description>). This hasn't been extensively tested, so there may still be issues. None of the items in Asteroid Mining use the description feature.
+        - As an example, the following call is how Homeworld Redux adds it's sand resource as a new miner/asteroid/chunk to the mod with a slightly yellow tint to the normally brown icons:
+        - amfunc.addtype("sand",{a = 0,b = 20,g = 20,b = 0})
+  Bugfixes:
+    - Changed a require which broke sometimes for some reason?
+---------------------------------------------------------------------------------------------------
 Version: 0.9.7
   Bugfixes:
     - Fixed Angel's Refining support so it won't overwrite that mods flotation chunks.

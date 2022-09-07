@@ -1,12 +1,12 @@
 {
   "name": "Asteroid_Mining",
-  "version": "0.9.7",
+  "version": "0.9.10",
   "factorio_version": "1.1",
   "title": "Asteroid Mining",
   "author": "Silari",
   "contact": "",
   "www": "",
-  "description": "Allows sending rockets into space to mine for asteroid bits, which can be refined into raw materials for infinite ores. Includes all 5 vanilla ores, plus Bob's Ores and Angel's support.",
+  "description": "Allows sending rockets into space to mine for asteroid bits, which can be refined into raw materials for infinite ores. New advanced mode should support almost all non-infinite and non-liquid resources from most mods!",
   "dependencies": ["? bobplates >= 1.0.1",
 				   "? bobores >= 1.0.0",
 				   "? bobelectronics >= 1.0.0",
@@ -23,5 +23,7 @@
                    "? Krastorio2 >= 1.0.7",
                    "? bzlead >= 0.1.0",
                    "? bztitanium >= 0.9.0",
+                   "? creative-mod >= 1.7.2",
+                   "? space-exploration >= 0.5.89",
                    "base >= 1.1.0"]
 }

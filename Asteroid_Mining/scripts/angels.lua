@@ -41,15 +41,6 @@ function addangels()
     end
 end
 
---If angel's refining is installed it adds ore crushers and a recipe category for them. 
---We'll use that for processing chunks
-function changecrafting()
-    if data.raw["recipe-category"]["ore-sorting-t1"] then
-        return "ore-sorting-t1"
-    end
-    return nil
-end
-
 function setmixed2(processmixed) --will rename back to setmixed IF I end up adding these in. I doubt it though.
     --All the following is the code for bobs. Angel's shares a lot of the same ores so keeping it for now.
     log("Setting mixed results")
