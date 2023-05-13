@@ -1,9 +1,8 @@
-
 -- Some conventions I need to try and hold to:
 -- ALWAYSALWAYSALWAYS check for substitutes!
 -- surfname = get_sub_surface(surfacename)
 -- surftable = global.astmine.surfaces[surfname]
--- forcetable = global.astmine.surfaces[surfname].forces[forcename] -- note there's a init_forcetable function that should be used instead. It inits if needed and returns the force table.
+-- forcetable = global.astmine.surfaces[surfname].forces[forcename] -- note there's a init_force function that should be used instead. It inits if needed and returns the force table.
 -- restable = global.astmine.surfaces[surfname].resources
 
 -- Our data layout
@@ -26,6 +25,9 @@
 --Has our GUI components
 require("adv_gui")
 
+--Has our remote interfaces
+require("adv-remote")
+
 --Some constants we use here for easy changing
 astminemaxrate = 2000000 -- Default amount of maximum ore per tick, if none set on the ore.
 astminemaxstored = 2000000 -- No ore can have more than this stored.
@@ -45,6 +47,7 @@ function add_item(itemname, surfacename)
 end
 
 function get_sub_surface(surfacename)
+    --Single surface uses nauvis for everything.
     if settings.startup["astmine-singlesurface"].value then
         return 'nauvis'
     end
@@ -173,11 +176,19 @@ end
 -- This ensures the given force has the given surface initialized.
 -- Should be called when force launches something, when building is registered, maybe more later.
 -- It is NOT called when a force or surface is created. We're using a lazy init to save time in later loops.
+-- Several functions also use this to grab a copy of the force table, ensuring it's ready for use.
 function init_force(forcename, surfacename)
     surfname = get_sub_surface(surfacename)
     --game.print("Surfname: " .. surfname)
     surftable = global.astmine.surfaces[surfname]
     --game.print("init force" .. serpent.block(surftable))
+    -- Surface hasn't been initialized, do it now.
+    if not surftable then
+        if not check_surface(surfacename) then return false end -- Don't use this surface for anything
+        global.astmine.surfaces[surfacename] = {forces = {}}
+        make_resource_table(surfacename)
+        surftable = global.astmine.surfaces[surfname]
+    end
     -- If we haven't made a table for the force yet, do it
     if not surftable.forces[forcename] then
         surftable.forces[forcename] = {orbiting = {}, available = {}, upgrades = {[5] = 0, [25] = 0}}
@@ -206,7 +217,13 @@ function check_surface(surfacename)
     end
     if game.active_mods["space-exploration"] then
         --log("SE installed")
-        if surfacename == "starmap-1" then -- The fake surface used for the star map view. Always invalid.
+        -- The fake surface used for the star map view. Always invalid.
+        if surfacename == "starmap-1" then 
+            set_sub_surface(surfacename,"")
+            return false
+        end
+        -- Surfaces used for spaceships in transit. We can ignore those.
+        if string.sub(surfacename,1,10) == "spaceship-" then
             set_sub_surface(surfacename,"")
             return false
         end
@@ -219,13 +236,20 @@ function check_surface(surfacename)
             --log(serpent.block(sezone))
         end
         if sezone then surftype = sezone.type end
-        log(surfacename .. " : " .. (surftype or "no type"))
+        --log(surfacename .. " : " .. (surftype or "no type"))
         if surftype == "planet" or surftype == "moon" then
             --log("Planet/moon")
         elseif surftype == nil then
             log("nil type, shouldn't happen anymore.")
-        else
+        elseif surftype == "orbit" then -- Orbit of a planet, we want to substitute to that planet.
             --Orbits would need to call get_zone_from_surface_index, grab the parent_index property, get_zone_from_zone_index using the parent_index to find the surface name. That would be the sub.
+            --if sezone == false then sezone = remote.call("space-exploration", "get_zone_from_name", {zone_name = surfacename}) end
+            --log(serpent.block(sezone))
+            --Parent is sezone.parent_index
+            -- The problem we have is that the orbit might be created and the surface not yet (or ever). There might be enough info in sezone for me to create it from that but not sure if THATS created before the surface. Look into it later.
+            set_sub_surface(surfacename,"") -- For now we stop it until I write this code.            
+            return false -- We still return false as this is not a real surface - it's substituted
+        else
             set_sub_surface(surfacename,"")
             return false
         end
@@ -251,6 +275,7 @@ function check_surface(surfacename)
     return true -- Got to the end and it didn't fail, must be fine
 end
 
+-- Gets the SE radius multiplier for the given surface, for max resources per minute.
 function get_radius_max(surfacename, miningrate)
     -- radius = 1245.5232602250646, radius_multiplier = 0.3, - MOON
     -- For planets radius multiplier is 1/10000 the radius. Nauvis is an exception: (nauvis radius = 5691.7291654647397, radius_multiplier = 0.66069768030008618)
@@ -272,7 +297,7 @@ function get_radius_max(surfacename, miningrate)
 end
 
 -- Builds the list of resources for the given surface, or the default table based on nauvis if none given.
-function make_resource_table(surfacename)
+function make_resource_table(surfacename, ressurfacename)
     -- This should attempt to build the resources for this surface from the map generation settings. 
     -- Get the table for this surface and make sure it's initialized if needed
     local restable
@@ -288,10 +313,14 @@ function make_resource_table(surfacename)
         end
         restable = global.astmine.surfaces[surfacename].resources
     end
-    local surface = game.surfaces[surfacename]
+    -- If we weren't given a surface to base resources on, use the surface we're making the table for
+    if ressurfacename == nil then
+        ressurfacename = surfacename
+    end
+    local surface = game.surfaces[ressurfacename]
     if surface == nil then
-        log("Invalid surface! " .. surfacename)
-        return
+        log("Invalid surface! " .. ressurfacename)
+        return false
     end
     local mapgen = surface.map_gen_settings.autoplace_controls
     --log(serpent.block(mapgen))
@@ -299,7 +328,7 @@ function make_resource_table(surfacename)
         log("No autoplace controls for surface " .. surfacename)
         -- This surface isn't valid since it has no resources. Remove it.
         set_sub_surface(surfacename,"")
-        return
+        return false
     end
     -- This should get all resource entities so we can add them to our table.
     for name, resource in pairs(game.get_filtered_entity_prototypes({{filter="type", type="resource"}})) do
@@ -341,11 +370,67 @@ function make_resource_table(surfacename)
         end
     end
     --log(serpent.block(restable))
+    return true
 end
+
+-- Attempts to upgrade the miner for the given resource.
+function minerupgrade(forcetable, player, orename)
+    --game.print(player.name .. " : " .. orename)
+    -- If the surface has no orbital upgrade station, tell the user.
+    if forcetable.upgrades["station"] == nil then
+        -- No upgrade station in orbit, player can not upgrade their rockets. If orename is nil they sent an upgrade, warn them it can't be used yet.
+        player.print({"astmine-no-station"})
+        return
+    end
+    -- See if there's any upgrades waiting. If not, do nothing.
+    --log("checkupgrade " .. serpent.block(forcetable))
+    if forcetable.upgrades[5] == 0 and forcetable.upgrades[25] == 0 then
+        player.print({"astmine-no-upgrades"})
+        return
+    end
+    -- If we were provided a resource name, check that only.
+    local orestocheck = {orename = forcetable.orbiting[orename]}
+    if orename == nil then
+        orestocheck = forcetable.orbiting
+    end
+    local updategui = false
+    --log("checkupgrade2 " .. serpent.block(orestocheck))
+    for name, value in pairs(orestocheck) do
+        --log(name .. " : " .. serpent.block(value))
+        -- value = {1=,5=,25=}
+        if value[1] > 2 and forcetable.upgrades[5] > 0 then
+            value[1] = value[1] - 3
+            forcetable.upgrades[5] = forcetable.upgrades[5] - 1
+            value[5] = value[5] + 1
+            updategui = true
+        end
+        -- By running them in this order we allow for using both upgrades at once; if they have 3 level 1, 2 level 5, and both upgrade modules in orbit they end with 1 level 25.
+        if value[5] > 2 and forcetable.upgrades[25] > 0 then
+            value[5] = value[5] - 3
+            forcetable.upgrades[25] = forcetable.upgrades[25] - 1
+            value[25] = value[25] + 1
+            updategui = true
+        end
+    end
+    -- If any of upgrades happened, update player GUIs to account for it.
+    if updategui then 
+        updateplayerGUI()
+        player.print({"astmine-upgraded"})
+    else
+        player.print({"astmine-upgrade-failed"})
+    end
+end
+
 
 -- **************************
 -- Events section
 -- **************************
+-- Stuff we may need to add later.
+-- script.on_event(ALL THE BUILDING) -- We need to register our am-target when it gets built. If we stop using find_entities_filtered, that is.
+-- script.on_event(defines.events.on_surface_deleted,nil) -- Remove any stored references to the surface. Biggest issue would be if one is set as a substitute target - need to loop over that table. Might not even want to do that if we use surface.name, so if two surfaces are shared we leave the shared name in use for the others. In that case surface_cleared SHOULD remove all the info though.
+-- script.on_event(defines.events.on_surface_cleared,nil) -- Probably do nothing for this, shouldn't be used much. If we do it'd just be the same as deleted, except then reinit like creating. CHANGED: This should clear the info, as we don't do that when the surface is deleted.
+-- on_force_created -- make a table for the force? No we lazily init the table when needed.
+-- on_forces_merged/on_forces_merging -- probably use the second one JIC as it's slightly earlier and old force still exists at that time. Nothing we do is really affected by the merging, we just need to add the .orbiting and .resources for the two forces.
 
 --Ensures that globals were initialized. Called on init and by on_configuration_changed
 function init_mining()
@@ -389,23 +474,22 @@ end
 script.on_init(function()
   init_mining()
   commands.add_command("asteroid","Displays Asteroid Mining surface info",surfaceinfo)
+  --addremote()
 end)
 
 script.on_load(function()
   commands.add_command("asteroid","Displays Asteroid Mining surface info",surfaceinfo)
+  --addremote()
 end)
 
 
--- script.on_event(ALL THE BUILDING) -- We need to register our am-target when it gets built. If we stop using find_entities_filtered, that is.
--- script.on_event(defines.events.on_surface_deleted,nil) -- Remove any stored references to the surface. Biggest issue would be if one is set as a substitute target - need to loop over that table. Might not even want to do that if we use surface.name, so if two surfaces are shared we leave the shared name in use for the others. In that case surface_cleared SHOULD remove all the info though.
--- script.on_event(defines.events.on_surface_cleared,nil) -- Probably do nothing for this, shouldn't be used much. If we do it'd just be the same as deleted, except then reinit like creating. CHANGED: This should clear the info, as we don't do that when the surface is deleted.
--- on_force_created -- make a table for the force? No we lazily init the table when needed.
--- on_forces_merged/on_forces_merging -- probably use the second one JIC as it's slightly earlier and old force still exists at that time. Nothing we do is really affected by the merging, we just need to add the .orbiting and .resources for the two forces.
+
 
 function techdone(event)
     --game.print(serpent.block(event) .. " : techname : " .. event.research.name)
     -- Tech result is what kind of miner to give
     local techresult = global.astmine.research[event.research.name]
+    --game.print(techresult)
     if techresult == nil then return end -- Not in our table, ignore
     local forcename = event.research.force.name
     local surfacename = global.astmine.researcht or 'nauvis'
@@ -438,7 +522,6 @@ script.on_event(defines.events.on_surface_created,function(event)
     end
     if not check_surface(surface.name) then return end -- Don't use this surface for anything
     local surfacename = get_sub_surface(surface.name)
-    -- TODO Make this check if the surface is substituted - if so, we don't need to do anything.
     if not global.astmine.surfaces[surfacename] then
         global.astmine.surfaces[surfacename] = {forces = {}} 
     end
@@ -447,11 +530,10 @@ script.on_event(defines.events.on_surface_created,function(event)
 end)
 
 function renamesurface(event)
-    -- TODO This needs to account for the new name being substituted already.
-    -- As it is the new name's sub value gets overwritten by the old one.
+    -- OLDTODO This needs to account for the new name being substituted already. As it is the new name's sub value gets overwritten by the old one. DONOTFIX: Honestly ok with that since it's a different surface.
     local newname = event.new_name
     local oldname = event.old_name
-    -- Move the surface table, which includes all our force tables
+    -- Move the surface table, which includes all our force tables.
     global.astmine.surfaces[newname] = global.astmine.surfaces[oldname]
     global.astmine.surfaces[oldname] = nil
     -- If the name is in the subtable remove the old and add the new with the old target. If it's not both are nil now.
@@ -470,14 +552,13 @@ script.on_event(defines.events.on_surface_renamed,renamesurface) -- Need to upda
 -- **************************
 -- Rocket launching code
 -- **************************
--- This checks if an upgrade is possible. It requires a station in orbit, an upgrade module in orbit, and a resource with enough rockets of appropriate level to upgrade. This can be triggered by launching an upgrade OR a mining module OR the upgrade station module.
+-- This checks if an upgrade is possible. It requires a station in orbit, an upgrade module in orbit, and a resource with enough rockets of appropriate level to upgrade. This can be triggered by launching an upgrade OR a mining module OR the upgrade station module. NOTE: THIS NO LONGER RUNS AT ALL. We now use manual triggering by the player in minerupgrade.
 function checkupgrade(forcetable, force, orename)
+    --game.print(force.name .. " : " .. orename)
     -- If no upgrade station and no orename, user just sent up an upgrade - warn them they need the station.
     if forcetable.upgrades["station"] == nil then
         -- No upgrade station in orbit, force can not upgrade their rockets. If orename is nil they sent an upgrade, warn them it can't be used yet.
-        if orename == nil then
-            force.print({"astmine-no-station"})
-        end
+        force.print({"astmine-no-station"})
         return
     end
     -- See if there's any upgrades waiting. If not, do nothing.
@@ -490,6 +571,7 @@ function checkupgrade(forcetable, force, orename)
     if orename == nil then
         orestocheck = forcetable.orbiting
     end
+    local updategui = false
     --log("checkupgrade2 " .. serpent.block(orestocheck))
     for name, value in pairs(orestocheck) do
         --log(name .. " : " .. serpent.block(value))
@@ -498,14 +580,18 @@ function checkupgrade(forcetable, force, orename)
             value[1] = value[1] - 3
             forcetable.upgrades[5] = forcetable.upgrades[5] - 1
             value[5] = value[5] + 1
+            updategui = true
         end
         -- By running them in this order we allow for using both upgrades at once; if they have 3 level 1, 2 level 5, and both upgrade modules in orbit they end with 1 level 25.
         if value[5] > 2 and forcetable.upgrades[25] > 0 then
             value[5] = value[5] - 3
             forcetable.upgrades[25] = forcetable.upgrades[25] - 1
             value[25] = value[25] + 1
+            updategui = true
         end
     end
+    -- If any of upgrades happened, update player GUIs to account for it.
+    if updategui then updateplayerGUI() end
 end
 
 -- Add <count> orbiting miners of <oretype> resource.
@@ -518,8 +604,10 @@ function addlevel(orbtable, oretype, count)
     -- TODO - make this unupgrade if necessary to remove the level, since it may have been used in an upgrade. Alternatively
     -- allow it to go negative in a section, just not negative overall.
     -- We don't allow less than 0. Count may be negative.
-    oretable[1] = math.max((oretable[1] or 0) + count,0)
-    return oretable[1]
+    local newlevel = (oretable[1] or 0) + count
+    oretable[1] = math.max(newlevel,0)
+    -- Return the new level of miners (used to check if upgrades are possible by rocklaunch)
+    return newlevel
 end
 
 -- Prints an error message and refunds rocket parts if a launch wasn't valid for the surface - invalid surface, resource doesn't exist on the surface, (MAYBE upgrade module already present), etc
@@ -527,31 +615,58 @@ function badlaunch(force, silo, message)
     -- We're going to print an error and attempt to refund the rocket parts.
     force.print(message)
     if silo and silo.valid then
-        -- Currently this has an issue where the silo won't attempt to build another rocket without another part being built. I've reported it to the factorio devs.
+        -- Currently this has an issue where the silo won't attempt to build another rocket without another part being built. I've reported it to the factorio devs. SHOULD BE FIXED in 1.1.69.
         silo.rocket_parts = silo.rocket_parts + silo.prototype.rocket_parts_required
         force.print({"astmine-refund-parts"}) -- Tell them we've refunded parts
     end
+end
+
+-- Are all the items in this rocket Asteroid Mining items?
+function asteroiditem(items)
+    local isours = true
+    -- There's USUALLY only one item in a rocket but possibly more.
+    for itemname, count in pairs(items) do
+        local i, j, k, l
+        i, j = string.find(itemname, "astmine%-advmodule%-")
+        k, l = string.find(itemname, "astmine%-upgrade%-")
+        if (i == 1) or (k == 1) then 
+            
+        elseif itemname == "astmine-mixed" then
+            
+        elseif itemname == "astmine-upgrade-module" then
+            
+        else
+            isours = false -- this is not one of our Advanced Mining items
+        end
+    end
+    --game.print("Asteroid Item?: " .. tostring(isours))
+    return isours
 end
 
 -- See if what launched was one of our items, and if it was perform appropriate steps.
 function rocklaunch(event)
     local rocket = event.rocket
     local surfname = get_sub_surface(rocket.surface.name) -- Rocket always exists, silo may not.
+    local inv = rocket.get_inventory(defines.inventory.rocket) -- Get this now since we may need it in the next check
+    local items = inv.get_contents() -- Same here.
+    --game.print("Rocklaunch items: " .. tostring(inv.is_empty()))
+    if inv.is_empty() then
+        return -- No items were launched, so we don't need to do a thing.
+    end
     --game.print("Surf: " .. surfname)
-    if surfname == "" then -- Not a valid surface to mine with, bad launch.
+    if surfname == "" and asteroiditem(items) then -- Not a valid surface to mine with, bad launch.
         badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-surface"})
         return
     end 
-    local inv = rocket.get_inventory(defines.inventory.rocket)
     --game.print(serpent.block(inv.get_contents()))
     local updategui = false
-    for itemname, count in pairs(inv.get_contents()) do -- There COULD be more than one item in a rocket via modding?
+    for itemname, count in pairs(items) do -- There COULD be more than one item in a rocket via modding?
         -- Our resource specific modules all start with 'astmine-module-'
-        i, j = string.find(itemname, "astmine%-advmodule%-")
+        local i, j = string.find(itemname, "astmine%-advmodule%-")
         if i == 1 then -- We found the string, it's our module
             modtype = string.sub(itemname,j+1)
             --game.print('asteroid miner: ' .. modtype)
-            -- Do the resource this module is for exist on this surface?
+            -- Does the resource this module is for exist on this surface?
             surftable = global.astmine.surfaces[surfname]
             if surftable.resources[modtype] == nil then -- if not, it's a bad launch
                 badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-resource"})
@@ -560,10 +675,17 @@ function rocklaunch(event)
             -- Ensure we've got this force and surface initialized, and get the surface info for this force
             local forcetable = init_force(rocket.force.name, surfname)
             --game.print(serpent.block(forcetable))
-            -- Increase the orbiting miner count for the resource by count of miners - 1 for our types, mods can add others
-            if addlevel(forcetable.orbiting,modtype, count) == 3 then
-                checkupgrade(forcetable, rocket.force, modtype) -- If the count is 3, see if we can upgrade it with an upgrade module already in orbit.
+            if not forcetable then
+                -- This surface wasn't inited before, and now that we have it's invalid. Do the badlaunch.
+                badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-surface"})
+                return
             end
+            -- Increase the orbiting miner count for the resource by count of miners - 1 for our types, mods can add others
+            -- We no longer do this. Upgrades are done manually by the player using the GUI.
+            -- if addlevel(forcetable.orbiting,modtype, count) == 3 then
+                -- checkupgrade(forcetable, rocket.force, modtype) -- If the count is 3, see if we can upgrade it with an upgrade module already in orbit.
+            -- end
+            addlevel(forcetable.orbiting,modtype, count)
             -- game.print(serpent.block(forcetable))
             updategui = true -- We need to update player GUIs.
         end
@@ -571,14 +693,16 @@ function rocklaunch(event)
             local forcetable = init_force(rocket.force.name, surfname)
             --game.print(serpent.block(forcetable))
             -- Increase the orbiting miner count for the resource by count of miners - currently always 1
-            if addlevel(forcetable.orbiting,itemname, count) == 3 then
-                checkupgrade(forcetable, rocket.force, itemname) -- If the count is 3, see if we can upgrade it with an upgrade module already in orbit.
-            end
+            -- We no longer do this. Upgrades are done manually by the player using the GUI.
+            -- if addlevel(forcetable.orbiting,itemname, count) == 3 then
+                -- checkupgrade(forcetable, rocket.force, itemname) -- If the count is 3, see if we can upgrade it with an upgrade module already in orbit.
+            -- end
+            addlevel(forcetable.orbiting,itemname, count)
             -- game.print(serpent.block(forcetable))
             updategui = true -- We need to update player GUIs.
         end
         -- Upgrade modules start with astmin-upgrade-
-        i, j = string.find(itemname, "astmine%-upgrade%-")
+        local i, j = string.find(itemname, "astmine%-upgrade%-")
         --log(itemname)
         if i == 1 then 
             modtype = string.sub(itemname,j+1)
@@ -586,11 +710,11 @@ function rocklaunch(event)
             if modtype == '5' then
                 local forcetable = init_force(rocket.force.name, surfname)
                 forcetable.upgrades[5] = forcetable.upgrades[5] + 1
-                checkupgrade(forcetable, rocket.force)
+                --checkupgrade(forcetable, rocket.force)
             elseif modtype == '25' then
                 local forcetable = init_force(rocket.force.name, surfname)
                 forcetable.upgrades[25] = forcetable.upgrades[25] + 1
-                checkupgrade(forcetable, rocket.force)            
+                --checkupgrade(forcetable, rocket.force)            
             end
             updategui = true -- We need to update player GUIs.
         end
@@ -599,7 +723,8 @@ function rocklaunch(event)
             -- Add 1, which means it's no longer nil. Later we might require multiple upgrade station levels.
             forcetable.upgrades["station"] = (forcetable.upgrades["station"] or 0) + 1
             -- Since we CAN upgrade stuff now, go ahead and check in case they sent the upgrade first.
-            checkupgrade(forcetable, rocket.force)
+            -- We no longer do this. Upgrades are done manually by the player using the GUI.
+            --checkupgrade(forcetable, rocket.force)
             updategui = true -- We need to update player GUIs.
         end
     end
@@ -652,29 +777,33 @@ end
 -- Iterates all the am_target and distributes the forces surfaces .available ores to them
 -- TODO I might want to copy the code I made for Teleportation Redux to dynamically adjust the update rate based on how many targets there are. If I did that and included a setting for the rate, between that and the setting for resource size it'd be very easy to mid-game adjust numbers. Or maybe just a setting for "Update Multiplier" that muliplies both seconds/update and resamount. Current method allows first targets to hog all the resources, until it's full. NOTE this would require using the saved list of targets method rather than the find method.
 function spawnresource()
-    local resamount = settings.global["astmine-resamount"].value
+    local resamount = settings.global["astmine-resamount"].value -- I should move this to getore - it's the ONLY place it's used!
     -- Iterate over our table of forces. Most cases, this will be nothing, as no one has sent anything up, or just the "player" force.
-    for surfacename, surftable in pairs(global.astmine.surfaces) do
+    for surfacename, asurftable in pairs(global.astmine.surfaces) do
+        local surftable = asurftable
         --game.print(surfacename .. " : " .. serpent.block(surftable))
+        local subname = get_sub_surface(surfacename)
+        if subname == "" then -- Surface has been disallowed from Asteroid Mining. Do nothing.
+            goto nosurf
+        end
         local surface = game.get_surface(surfacename)
         if surface == nil then -- Surface no longer exists, possibly deleted.
             -- Eventually I might want to do something with this, like move it to a "deleted surfaces" table and move it back if the surface is recreated. For now, nothing.
             goto nosurf
         end
-        -- TODO Two issues here - one is that we should redo targets to only need to search ONCE per surface, with a lazy init so it only searches if there's actually a force in the forces subtable - should be done
-        -- SECOND we don't actually check the force of the targets. Maybe a function that returns a list of what targets match our forcename.
-        local targets
+        -- Surface is subbed. We need to have it use a different table.
+        if subname then
+            surftable = global.astmine.surfaces[subname]
+        end
         -- Iterate every surface that we've stored Asteroid Mining data for
         -- If no surfaces have been initialized yet for this force, it should skip.
         for forcename, forcetable in pairs(surftable.forces) do
             --game.print("Force:" .. forcename)
             -- We need this table several times so lets nab a local reference
             local avail = forcetable.available
-            -- Find all the asteroid mining targets on the map.
-            if not targets then
-                targets = surface.find_entities_filtered({name = "astmine-target"})
-            end
-            --game.print("Targets: " .. #targets)
+            -- Find all the asteroid mining targets on the map for this force.
+            local targets = surface.find_entities_filtered({name = "astmine-target", force = forcename})
+            --game.print(forcename .. " targets: " .. #targets)
             for n, target in pairs(targets) do -- If no targets found this does nothing
                 local entcontrol = target.get_control_behavior() -- ConstantCombinatorControl for this target
                 if entcontrol.enabled == false then -- Disabled, so don't send anything.
@@ -696,13 +825,13 @@ function spawnresource()
                     -- Remove created ore from the available pool
                     avail[orename] = avail[orename] - transfer
                 end
-                ::continue::
+                ::continue:: -- Target is off or no ore to send.
             end
             -- Surface is done outputting ore, lets debug check it
             --game.print("Final Avail:")
             --game.print(serpent.block(avail))
         end
-        ::nosurf:: -- No surface found, skip
+        ::nosurf:: -- No surface found or surface invalid for AM, skip
     end
 end
 
@@ -712,6 +841,10 @@ function gather_resources()
     --game.print("Gathering!")
     -- Iterate every surface with data - ie those that aren't subbed.
     for surfacename, surftable in pairs(global.astmine.surfaces) do
+        if surfacename ~= get_sub_surface(surfacename) then
+            -- If the surface was substituted it no longer gets processed here.
+            goto skipsurf
+        end
         -- Table with resources available on this surface.
         local restable = global.astmine.surfaces[surfacename].resources
         -- If resources isn't defined for that surface, we instead use the default table.
@@ -733,7 +866,7 @@ function gather_resources()
                     -- Iterate over all ores on this surface and add them to the amount available
                     for surfore, values in pairs(restable) do
                         --game.print("Surfore: " .. surfore .. " : Values: " .. serpent.block(values))
-                        forcetable.available[surfore] = math.min((forcetable.available[surfore] or 0) + math.min(orelevel * values.rate, values.maxrate or astminemaxrate),astminemaxstored)
+                        forcetable.available[surfore] = math.min((forcetable.available[surfore] or 0) + math.min(orelevel * values.rate or 0, values.maxrate or astminemaxrate),astminemaxstored)
                     end
                 else -- Resource specific miner handling, just spawns the 1 kind of ore.
                     local oreinfo = restable[orename]
@@ -757,6 +890,7 @@ function gather_resources()
             end
             --game.print(serpent.block(forcetable.available))
         end
+        ::skipsurf::
     end
 end
 

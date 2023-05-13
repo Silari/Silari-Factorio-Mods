@@ -1,4 +1,35 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.9.14
+  Bugfixes:
+    - Resolved issue where launching any item on a surface that was disabled for Asteroid Mining would refund the rocket parts, instead of only activating for advanced mode items.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.13
+  Bugfixes:
+    - Removed another debugging print. Should be the last.
+    - Calling addtype with an item name that doesn't exist will no longer cause a fatal error. Instead the mod will fail to generate any items and log the problem.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.12
+  Bugfixes:
+    - Removed many many many debugging print statements that were accidently left in. Sorry folks.
+    - Fixed missing GUI element in the Resources tab due to not enough columns in the first table.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.11
+  Features:
+    - Added player's Force to the Asteroid Mining GUI by the surface selection. 
+    - Updated GUI to include more information, including the total rate of a single mixed miner and the rate of an ore specific miner, as well as the current rate for each resource.
+    - Both GUI tabs now use resource icons to designate the resources/orbiting miners, which looks nicer and allows upgrading that miner type by clicking the button on either tab. An icon for the mixed miner is also included with the mixed rate to upgrade that.
+  Balancing:
+    - Chanked stack size of asteroid chunks to 200 if Space Exploration is installed, to match the mods recommended max stack size to balance resource transport costs. 
+  Bugfixes:
+    - Surfaces that were substituted did not use the sub surface's orbital resources to spawn resources. In most cases, this meant they were unable to spawn anything.
+        - This would be most apparent with the Single Surface setting to true, as no surface other than Nauvis could spawn any resources.
+    - Ore spawning now respects the force of the targeter, instead of every force attempting to spawn ore for every targeter.
+    - Space Exploration spaceship surfaces are now ignored.
+  Modding:
+    - Added interfaces for intramod communication. Please see the /scripts/advanced/adv-remote.lua file for documentation.
+  Optimisations:
+    - Some surfaces that were not viable for asteroid mining were still being processed every update. Those surfaces are now skipped.
+---------------------------------------------------------------------------------------------------
 Version: 0.9.10
   Features:
     - Added in real support for multiple surfaces in advanced mode. Previous implementation was a place holder that used the default mining rates (based on Nauvis resources) for every surface. Mining rates are now generated for each surface based on map generation settings. Resources which generate less than 1/min will not generate for that surface.
@@ -6,6 +37,7 @@ Version: 0.9.10
         - Support for Space Exploration surfaces is included, filtering out any orbital surfaces, hidden surfaces, and the like. In a future update planet/moon orbits may share the planet/moon surface data. For now, it's disallowed as orbits can get some VERY absurd resource rates.
             - If SE is installed, surfaces will have a max rate based on the radius of the planet/moon. Right now, this is a direct multiplier based on radius / 10000 * 50. Thus a radius 5000 planet allows 25 times the base rate.
         - Will also automatically ignore Factorissimo 2 buildings and AAI Signals special surface.
+    - Attempting to launch an invalid module into orbit or from an invalid surface will print a message explaining why it failed, and refund the rocket parts to make the rocket, if possible. The module itself is lost. Note that in Factorio versions prior to 1.1.69 the rocket silo will not create the new rocket until another part has been constructed. This should be fixed in 1.1.69.
 ---------------------------------------------------------------------------------------------------
 Version: 0.9.9
   Bugfixes:

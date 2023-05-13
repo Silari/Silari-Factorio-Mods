@@ -1,11 +1,11 @@
-BIG THINGS
+BIG THINGS 
 
-Fix up orbit surfaces in SE - they should be substituted with the surface below (if not a solar orbit)
+Fix up orbit surfaces in SE - they should be substituted with the surface below (if not a solar orbit). -- NOT YET theres an issue in that the planet surface might not be created yet or at all.
 
-Probably disallow any surface which lacks any resources. Would need to add the check to make_resource_table - if it generates none, sub the surface to "".
 
-Double check if specific miners can gather a resource from a surface that doesn't spawn it. PRETTY sure the loop won't ever hit the resource.
+Maybe color code or otherwise mark which ones are ready for upgrades
 
+**********
 
 IMAGE STUFF
 Possible sprites to edit:
@@ -19,20 +19,14 @@ hr-02-rocket
 icons: nuclear, spidertron (tech or item), solar-energy, solar-panel-equipment, nuclear-reactor, centrifuge, substation, roboport, , solar-panel, spidertron-tintable(-mask)
 
 
-Testing resource baserate corrections: CHANGED TO AVERAGE OF THE 3!
-Iron - 200% freq - 200
-Copp - 133% Size - 133.33333730698
-Ston - 200% Rich - 200
-Sand - Base rate - 100
-Coal - 400% Freq - 400
-Uranium - 200% of all 3 - 800
-
 LATER THINGS
+-- Rework upgrades to make them done via the GUI, instead of just picking the first eligible one it finds.
+
+-- on_player_changed_surface: make it redo the GUI. If the old surface isn't IN the new GUI go to the current surface, otherwise don't change
+
 -- Add in the single surface setting. Basically this has get_sub_surface always return 'nauvis' (DONE). check_surface needs adjusted to never reject any surface (DONE). So should be done. Not tested.
 
 -- Maybe add variance to size of created ore spots, average around 500 but allow for more/less
-
--- Fix spawn function to check force of targets before spawning anything. Needs to match force.
 
 -- Anywhere that checks for a substitute must check that the sub isn't "", thus meaning it's disabled.
     -- We have check_surface now which checks if a surface is subbed or is blacklisted (then "" it)
@@ -49,27 +43,7 @@ LATER THINGS
 
 -- Possibly redo spawnresources to utilize Tele_Redux dynamic sizing code. Would need switch to stored list of entities instead of find.
 
--- Add resource specific miner adjustment ratio to /asteroid info
 
-
--- Add in interfaces
-    -- Add in setting for substitute which causes the surface to not be valid at all for sending things. NOTE: This is now "" to disallow.
-
---TODO Make an interface to register substitutes
---If a substitute is set, and the surface to substitute has a substitute itself, use it instead.
---Also setting a sub should clear/merge the table for that surface so it doesn't need to be looped through.
---Setting a sub needs to make sure the substitute name has it's surface info setup. Note that a subname isn't NECESSARILY A SURFACE, so the create_surface event can't be assumed to have made it.
---If a substitute is set, and the surface to sub to doesn't have surface data for a force, copy it over to the new surface.
-
---Remote function to clear info for surface_name
-
-
---TODO Make interface to register a new resource as default.
---TODO Make interface to set resources for a surface.
---TODO Make interface to set technology to add miners - need techname, oretype, level, count?
-	--TODO Make interface to set the surface to give the tech too. May need to put this in with the rest of the info
-
---TODO Make max resource rate dependent on surface size for Space Expansion
 
 --TODO Add a blacklist to the resources, probably in a constants file so it can be used in data and control stages.
 
@@ -80,17 +54,19 @@ LATER THINGS
 --TODO Animation for ore spawning. This would work better with them spaced out a bit more, like the TODO in control to copy tele-redux code.
 
 MAYBE THINGS
--- TODO Split this into multiple scripts to group things. One for utility, one for rocket launch, one for ore update and placement, etc. Assuming it is big enough to need that kind of organization. Might not.
-
--- Possibly make rocketlaunch confirm resource exists for miner? Shouldn't be needed since we programmatically make modules.
+-- New interfaces - get-miner to get current miner level, get-miningrate to get current rate for given resource, get-resources to get the table of resources for the surface.
+-- TODO Split this into multiple scripts to group things. One for utility, one for rocket launch, one for ore update and placement, etc. Assuming it is big enough to need that kind of organization. Might not. Utility was split already.
 
 -- Maybe add research to up the size of spawned resource patches.
 
--- MAYBE put the upgrade module in with rocket silo tech, and have the upgrade tech set to enabled = false + visible_when_disabled = true, so I can use the launch event for upgrade module to set it enabled. That'd stop people from sending the 5/25 before sending the station. At least on ONE surface. wouldn't stop launching station on nauvis then launching upgrade from another surface. -- PROLLY NOT
+-- MAYBE put the upgrade module in with rocket silo tech, and have the upgrade tech set to enabled = false + visible_when_disabled = true, so I can use the launch event for upgrade module to set it enabled. That'd stop people from sending the 5/25 before sending the station. At least on ONE surface. wouldn't stop launching station on nauvis then launching upgrade from another surface. -- PROLLY NOT, nothing is lost anyway, just need to launch the upgrade.
 
 --TODO Setting for require_fluid resources - three options: disallow, no random spawn, allow. No random spawn will still make them but they'll be disallowed from being randomly selected by the spawn option. Not sure if I can do that easily. Mostly done, no setting for 'no random spawn' yet.
 
 
+Probably disallow any surface which lacks any resources. Would need to add the check to make_resource_table - if it generates none, sub the surface to "". May NOT want to do this since a remote interface can add a resource at any time, and I don't want them to also have to unsub the surface. Can't automatically undo "" since it could've been "" for another reason. I COULD add it to the rocket launch - regular resources already do this but I could stop upgrade launches if there aren't any resources at all - seems a waste of time though, stop hitting yourself.
+
+SE zone info - useful to know what I can use to calculate stuff
 {
   child_indexes = {
     1135,

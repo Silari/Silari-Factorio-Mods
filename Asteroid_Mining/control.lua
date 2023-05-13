@@ -1,6 +1,7 @@
 --Resets miner module recipes.
 require("scripts/recipes.lua")
 
+-- Scripting for advanced mode.
 require("scripts/advanced/adv-mining.lua")
 
 function on_changed(event)
@@ -44,8 +45,8 @@ function on_changed(event)
             end
         end
         -- 0.9.10 changes a lot of stuff which I may not have tested enough. Warn users to make a backup.
-        if event.mod_changes["Asteroid_Mining"].new_version == "0.9.10" and settings.startup["astmine-makerockets"].value then
-            game.print("WARNING: You are using the advanced mode of Asteroid Mining. Please keep in mind it is still in a beta state, and this update makes a LOT of changes to how surfaces work. Be sure to check the GUI and ensure surface info (amount of resources, orbital assets, etc) looks correct before saving your game. Making a backup of the save you loaded is recommended prior to saving over it.")
+        if event.mod_changes["Asteroid_Mining"].new_version == "0.9.12" and settings.startup["astmine-makerockets"].value then
+            game.print("WARNING: You are using the advanced mode of Asteroid Mining. Please keep in mind it is still in a beta state. This update fixes some issues with multiple forces. Be sure to check the GUI and ensure surface info (amount of resources, orbital assets, etc) looks correct before saving your game. Making a backup of the save you loaded is recommended prior to saving over it.")
         end
         --log(serpent.block(global.astmine))
     end

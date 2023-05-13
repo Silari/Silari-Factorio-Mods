@@ -55,6 +55,12 @@ require("scripts/category.lua") -- Sets our asteroid processing category based o
 allowprod = settings.startup["astmine-allowprod"].value
 useminer = settings.startup["astmine-enableminer"].value
 
+
+local chunkstacksize = 1000
+if mods["space-exploration"] then
+    chunkstacksize = 200
+end
+
 --Adds given recipe to prod modules allowed list
 function addmodules(name)
     if useminer then -- Only add these if we're actually enabled.
@@ -129,7 +135,7 @@ local asteroidmixed = {
   localised_name = {"item-name.asteroid-chunk", "Mixed"},
   localised_description = {"item-description.asteroid-chunk", "mixed", ""},
   order = "d[zasteroid-mixed]",
-  stack_size = 1000,
+  stack_size = chunkstacksize,
   subgroup = subchunk,
   type = "item",
   enabled = true
@@ -289,7 +295,7 @@ function addtype(name,atint,desc) --,pictures)
       localised_name = {"item-name.asteroid-chunk", {"item-name." .. name}},
       localised_description = {"item-description.asteroid-chunk", {"item-name." .. name}, desc},
       order = "k[zasteroid-" .. name .. "]",
-      stack_size = 1000,
+      stack_size = chunkstacksize,
       subgroup = subchunk,
       type = "item"        
     }

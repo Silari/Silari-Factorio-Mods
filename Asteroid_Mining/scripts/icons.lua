@@ -6,6 +6,11 @@ function generateicons(name,atint)
     else -- tenemut isn't, it's a tool. A big tool.
         itempath = data.raw.tool
     end
+    if itempath[name] == nil then
+        --log(serpent.block(data.raw))
+        log("Generate Icons called but an item or tool with that name could not be found. Item name: " .. name)
+        return false
+    end
     icon = itempath[name].icon
     iconsize = itempath[name].icon_size
     iconmip = itempath[name].icon_mipmaps

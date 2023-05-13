@@ -18,7 +18,7 @@ script.on_event(defines.events.on_player_created,on_player_created)
 function on_config_change( event )
     --Ensure the mod GUI is on for all players if advanced mode is used, or off for all players if it isn't.
     for _, player in pairs(game.players) do
-        -- If the old GUI button exists, destroy it.
+        -- If the old GUI button exists (not in any released version), destroy it.
         if player.gui.top["AMBTN"] then
             player.gui.top["AMBTN"].destroy()
         end
@@ -26,6 +26,13 @@ function on_config_change( event )
         if settings.startup["astmine-makerockets"].value == true then -- Advanced mode, ensure button exists.
             if not modbut["AMBTN"] then
                 modbut.add{type="button",caption="AM",name="AMBTN",tooltip={"asteroidminingbutton"},style=mod_gui.button_style}
+            end
+            -- If our GUI is open, close and reopen it. This will reset selected surface and tab but better than crashing due to changes in the GUI structure.
+            local gui = player.gui.left
+            if gui.astmine then
+                gui.astmine.destroy()
+                gui.add{type="frame", name="astmine", caption="Asteroid Mining", direction="vertical"}
+                makegui(gui.astmine, player)
             end
         else
             if modbut["AMBTN"] then
@@ -49,6 +56,15 @@ function on_gui_click(event)
             gui.add{type="frame", name="astmine", caption="Asteroid Mining", direction="vertical"}
             makegui(gui.astmine, player)
         end
+    elseif event.element.tags.amresname then -- element has our tag, its an upgrade request
+        local player = game.players[event.player_index]
+        local force = player.force
+        -- Surfsel holds the currently selected surface.
+        local surfsel = player.gui.left.astmine.surflow.playtabl.surfsel
+        local surfacename = surfsel.items[surfsel.selected_index]
+        local forcetable = init_force(force.name, surfacename)
+        --game.print("Resource name: " .. event.element.tags.amresname)
+        minerupgrade(forcetable, player, event.element.tags.amresname)
     end
 end
 script.on_event(defines.events.on_gui_click, on_gui_click)
@@ -60,7 +76,7 @@ function on_gui_selected_tab_changed(event)
         local player = game.players[event.player_index]
         local gui = player.gui.left
         if gui.astmine then
-            local surfsel = gui.astmine.surflow.surfsel
+            local surfsel = gui.astmine.surflow.playtabl.surfsel
             updatetab(gui.astmine.amtabpane, player, surfsel.items[surfsel.selected_index])
         end
     end
@@ -73,8 +89,11 @@ script.on_event(defines.events.on_gui_selection_state_changed, on_gui_selected_t
 function makegui(parent, player) -- Parent (flow or frame) to use as our display
     local surflow = parent.add{type="flow", name="surflow"}
     surflow.add{type="label", caption="Surface: "}
+    local playtabl = surflow.add{type="table", name="playtabl", column_count = 3}
     -- Dropdown to select what surface to view. Player's current surface is always included and initially selected.
-    local surfsel = surflow.add{type="drop-down",name="surfsel", items={player.surface.name},selected_index=1}
+    local surfsel = playtabl.add{type="drop-down",name="surfsel", items={player.surface.name},selected_index=1}
+    playtabl.add{type="label", caption="        "}
+    playtabl.add{type="label", caption="  Force: " .. player.force.name}
     local amtabpane = parent.add{type="tabbed-pane",name="amtabpane"}
     local tabone = amtabpane.add{type="tab", name="tabone", caption="Resources"}
     amtabpane.add_tab(tabone, amtabpane.add{type="flow", name="flowone", direction="vertical"})
@@ -101,23 +120,30 @@ function updatesurfsel(surfsel,playsurf)
     --log("SEL VALUES: " .. serpent.block(surfsel.items))
 end
 
+function invalid(tabpane)
+    local myflow = tabpane.flowone
+    if tabpane.selected_tab_index == 2 then
+        myflow = tabpane.flowtwo
+    end
+    myflow.clear()
+    myflow.add{type="label", caption={"astmine-not-valid-surface"}}
+end
+
 function updatetab(tabpane, player, surfacename)
     -- Update the currently open tab of the GUI. Called periodically and when tab changes.
     --log("astmineupdatetab " .. surfacename)
     local surfname = get_sub_surface(surfacename) -- Name of the surface to use for this surfaces resources (may be substituted)
     --log("astmine " .. surfname)
     if surfname == "" then -- Surface isn't valid for using. Throw in a message to the user about that.
-        local myflow = tabpane.flowone
-        if tabpane.selected_tab_index == 2 then
-            myflow = tabpane.flowtwo
-        end
-        myflow.clear()
-        myflow.add{type="label", caption={"astmine-not-valid-surface"}}
+        invalid(tabpane)
         return
     end
-    local force = player.force -- Force of the player as resources are shared among the force.
     local surftable = global.astmine.surfaces[surfname] -- Table with the info for this surface.
     --log(serpent.block(surftable))
+    if surftable == nil then -- this doesn't usually happen but might if the surface was cleared/deleted since the GUI was opened.
+        invalid(tabpane)
+        return
+    end
     local forcetable = (surftable.forces[player.force.name] or {}) -- Table with force data, may be nil if force not initialized.
     local resources = (forcetable.available or {}) -- Table with forces resources, may be nil if above or nothing launched.
     -- Holds the forces orbital assets for this surface. Empty if none.
@@ -137,6 +163,10 @@ function updatetab(tabpane, player, surfacename)
         local mixedlevel = (mixvalue[1] or 0) + (mixvalue[5] or 0) * 5 + (mixvalue[25] or 0) * 25
         local myflow = tabpane.flowone
         myflow.clear() -- Clear the tab so we can update it
+        local orecounttable = myflow.add{type="table", column_count = 3, vertical_centering=false}--, draw_vertical_lines=true}
+        orecounttable.add{type="sprite-button", sprite="item/astmine-mixed", tags={amresname = "astmine-mixed"}}
+        local mixdores = orecounttable.add{type="label", caption = "Total Mixed Rate: "}
+        local specores = orecounttable.add{type="label", caption = "     Spec. Miner Rate: "}
         -- Add a line for each resource on this surface - maybe a sprite button, rate/m/level, available
         for name, value in pairs(restable) do
             --log(value)
@@ -154,13 +184,16 @@ function updatetab(tabpane, player, surfacename)
             -- The resource miner level of this ore.
             local reslevel = (orbvalue[1] or 0) + (orbvalue[5] or 0) * 5 + (orbvalue[25] or 0) * 25
             --game.print(name .. " : " .. reslevel)
-            mytable.add{type="label", caption=name}
+            --mytable.add{type="label", caption=name}
+            mytable.add{type="sprite-button", sprite="entity/" .. name, tags={amresname = name}}
             mytable.add{type="label", caption="Base Rate: " .. baserate .. "/m  "}
             if maxrate then mytable.add{type="label", caption="Max Rate: " .. maxrate .. "/m "} end
             -- Store the pure ore miner level and the label for the current rate so we can update it later using the calculated totalbaserate. We don't know it yet.
             table.insert(crates,{mixedlevel * baserate,reslevel,mytable.add{type="label", caption=""}})
             mytable.add{type="label", caption="Available: " .. (resources[name] or 0)}
         end
+        mixdores.caption = "Mixed Rate: " .. totalbaserate .. "/m"
+        specores.caption = "Spec. Miner Rate: " .. (totalbaserate * astmineratio) .. "/m"
         for index, value in ipairs(crates) do
             local purerate = value[2] * totalbaserate * astmineratio
             local finalrate = purerate + value[1]
@@ -185,8 +218,13 @@ function updatetab(tabpane, player, surfacename)
         -- Add a line for each orbital asset for this force on this surface.
         for name, value in pairs(orbiting) do
             local mytable = myflow.add{type="table", column_count = 4}
-            if name == "astmine-mixed" then name = {"astmine-mixed-ore"} end
-            mytable.add{type="label", caption=name}
+            if name == "astmine-mixed" then 
+                --name = {"astmine-mixed-ore"}
+                mytable.add{type="sprite-button", sprite="item/" .. name, tags={amresname = name}}
+            else
+                mytable.add{type="sprite-button", sprite="entity/" .. name, tags={amresname = name}}
+            end
+            --mytable.add{type="label", caption=name}
             mytable.add{type="label", caption="Level 1: " .. (value[1] or 0)}
             mytable.add{type="label", caption="Level 5: " .. (value[5] or 0)}
             mytable.add{type="label", caption="Level 25: " .. (value[25] or 0)}
@@ -206,7 +244,7 @@ function updateplayerGUI(newsurface)
     for i, player in pairs(game.players) do
         local gui = player.gui.left
         if gui.astmine then
-            local surfsel = gui.astmine.surflow.surfsel
+            local surfsel = gui.astmine.surflow.playtabl.surfsel
             if newsurface then -- Given a new surface, just add it to the selection box
                 surfsel.add_item(newsurface)
             else

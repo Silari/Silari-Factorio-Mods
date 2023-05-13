@@ -184,6 +184,11 @@ function amfunc.addtype(name,atint,desc) --,pictures)
       type = "recipe"
     }
 
+    local generatedicons = generateicons(name,atint) --Generate icon layers using given item
+    if generatedicons == false then
+        log("Generated icons failed. Item could not be added.")
+        return
+    end
     --ITEM Miner module to get resource specific asteroids.
     local minerres = {
         stack_size = 1,
@@ -195,7 +200,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
             1000
         },
         order = "n[miner-module" .. name .. "]",
-        icons = generateicons(name,atint), --Generate icon layers using given item
+        icons = generatedicons,
         localised_name = {"item-name.miner-module", {"item-name." .. name}},
         localised_description = {"item-description.miner-module", {"item-name." .. name}}
     }
