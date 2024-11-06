@@ -11,6 +11,7 @@ function generateicons(name,atint)
         log("Generate Icons called but an item or tool with that name could not be found. Item name: " .. name)
         return false
     end
+    --log(serpent.block(itempath[name]))
     icon = itempath[name].icon
     iconsize = itempath[name].icon_size
     iconmip = itempath[name].icon_mipmaps
@@ -24,6 +25,7 @@ function generateicons(name,atint)
         iconmip = itempath[name].icons[1].icon_mipmaps
         tint = itempath[name].icons[1].tint
     end
+    iconsize = iconsize or 64
     --Do mipmaps need to be equal among all icons? From what I remember of the atlas, probably not
     return {
         {

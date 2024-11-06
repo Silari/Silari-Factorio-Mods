@@ -37,13 +37,21 @@ data:extend({
         default_value = true,
         order = "[b]astmine-k2crushing"
     },
+    { -- Should recipes be hidden until we research the rocket silo?
+        type = "bool-setting",
+        name = "astmine-hiderecipes",
+        setting_type = "startup",
+        default_value = false,
+        order = "[b]astmine-azhiderecipes"
+    },
     -- Below this is Advanced mode settings 
     { -- Enable the new items for advanced asteroid mining
         type = "bool-setting",
         name = "astmine-makerockets",
         setting_type = "startup",
         default_value = false,
-        order = "[v]aastmine-makerockets"
+        order = "[v]aastmine-makerockets",
+        hidden = true
     },
     { -- Disallow resources that require a fluid to mine. - TODO Add 'NoRandom' value which allows but won't include them in random ore distribution, only with signal set.
         type = "string-setting",
@@ -51,14 +59,16 @@ data:extend({
         setting_type = "startup",
         default_value = "Allow",
         allowed_values= {"Allow", "Disallow"},
-        order = "[v]astmine-disallowfluid"
+        order = "[v]astmine-disallowfluid",
+        hidden = true -- disabled right now
     },
     { -- All surfaces share information, default is based on Nauvis.
         type = "bool-setting",
         name = "astmine-singlesurface",
         setting_type = "startup",
         default_value = false,
-        order = "[v]astmine-singlesurface"
+        order = "[v]astmine-singlesurface",
+        hidden = true -- disabled right now
     },
     {
         type = "int-setting",

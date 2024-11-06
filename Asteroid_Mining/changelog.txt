@@ -1,4 +1,24 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+  Info:
+    - Release for Factorio 2.0.
+      - Space Age is not explicitly supported. The mod should work fine but has not been tested, and resource amounts are not adjusted for the much cheaper rocket launches.
+    - Advanced Mode is currently removed, as it's not finished. I should have it ready within a couple of weeks, if nothing comes up.
+    - Support for Krastorio 2 and BZmods were removed as they do not have 2.0 versions.
+      - BZmods has added support on his end in previous versions, so hopefully those will be added when he updates.
+        - The scripts for these mods are still included in the files, should someone want to try and get them working on their own.
+      - None of the rest of the mod support has been tested. They've been left in as they SHOULD work ok, providing there haven't been changes to the resources. Hopefully I'll get to testing these soon, but if you notice any issues please report it on the mod page.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.16
+  Bugfixes:
+    - Resolved error when a resource does not have a control set. 
+---------------------------------------------------------------------------------------------------
+Version: 0.9.15
+  Features:
+    - Added a new setting to disable asteroid and chunk processing recipes on startup. Instead they are unlocked with the rocket silo tech.
+  Bugfixes:
+    - Resolved an issue with the interface for adding modules that made it create basic mode recipes even when basic mode is disabled.
+---------------------------------------------------------------------------------------------------
 Version: 0.9.14
   Bugfixes:
     - Resolved issue where launching any item on a surface that was disabled for Asteroid Mining would refund the rocket parts, instead of only activating for advanced mode items.

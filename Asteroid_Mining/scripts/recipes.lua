@@ -8,7 +8,7 @@ function reset_recipes(changed)
         local recipes = force.recipes
 
         if technologies["rocket-silo"].researched then
-            for nindex, effect in pairs(technologies["rocket-silo"].effects) do
+            for nindex, effect in pairs(technologies["rocket-silo"].prototype.effects) do
                 --Set the recipe as researched.
                 if effect.type == "unlock-recipe" then
                     recipes[effect.recipe].enabled = true
@@ -17,7 +17,7 @@ function reset_recipes(changed)
         end
         -- These are the two Advanced mode researches
         if technologies["ast-min-upgrades"] and technologies["ast-min-upgrades"].researched then
-            for nindex, effect in pairs(technologies["ast-min-upgrades"].effects) do
+            for nindex, effect in pairs(technologies["ast-min-upgrades"].prototype.effects) do
                 --Set the recipe as researched.
                 if effect.type == "unlock-recipe" then
                     recipes[effect.recipe].enabled = true
@@ -25,7 +25,7 @@ function reset_recipes(changed)
             end
         end
         if technologies["ast-min-resminer"] and technologies["ast-min-resminer"].researched then
-            for nindex, effect in pairs(technologies["ast-min-resminer"].effects) do
+            for nindex, effect in pairs(technologies["ast-min-resminer"].prototype.effects) do
                 --Set the recipe as researched.
                 if effect.type == "unlock-recipe" then
                     recipes[effect.recipe].enabled = true

@@ -24,6 +24,7 @@ function advancedicon(name, atint)
         iconmip = itempath[name].icons[1].icon_mipmaps
         tint = itempath[name].icons[1].tint
     end
+    iconsize = iconsize or 64
     --Do mipmaps need to be equal among all icons? From what I remember of the atlas, probably not
     return {
         {
@@ -74,32 +75,38 @@ function addadvancedtype(name,atint)
         enabled = false,
         ingredients = {
             {
-              "electric-mining-drill",
-              20
+              name="electric-mining-drill",
+              amount=20,
+              type="item"
             },
             {
-              "radar",
-              10
+              name="radar",
+              amount=10,
+              type="item"
             },
             {
-              "roboport",
-              1
+              name="roboport",
+              amount=1,
+              type="item"
             },
             {
-              "construction-robot",
-              50
+              name="construction-robot",
+              amount=50,
+              type="item"
             },
             {
-              "nuclear-reactor",
-              1
+              name="nuclear-reactor",
+              amount=1,
+              type="item"
             },
             {
-              "assembling-machine-3",
-              10
+              name="assembling-machine-3",
+              amount=10,
+              type="item"
             }
         },
         name = "astmine-advmodule-" .. name,
-        result = "astmine-advmodule-" .. name,
+        results = {{name="astmine-advmodule-" .. name,amount=1,type="item"}},
         type = "recipe"        
     }
     data:extend{minerres,newminer}
@@ -183,7 +190,7 @@ function make_resources(makesignal)
         -- We skip resources that make nothing, infinite resources, optionally resources requiring fluids, and resources that give fluids
         if results == nil or resource.infinite then 
             log("Skipping resource " .. name)
-        elseif skipfluid and resource.minable.fluid_amount > 0 then
+        elseif skipfluid and resource.minable.fluid_amount and resource.minable.fluid_amount > 0 then
             log("Skipping fluid required resource " .. name)
         elseif false and skiplarge and collsize(resource.collision_box) then
             log("Skipping large resource " .. name)

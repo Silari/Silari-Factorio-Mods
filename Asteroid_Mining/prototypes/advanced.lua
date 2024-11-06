@@ -29,16 +29,18 @@ local amtargetr = {
     enabled = false,
     ingredients = {
         {
-          "rocket-control-unit",
-          1
+          name="processing-unit",
+          amount=1,
+          type="item"
         },
         {
-          "radar",
-          1
+          name="radar",
+          amount=1,
+          type="item"
         }
     },
     name = "astmine-target",
-    result = "astmine-target",
+    results = {{name="astmine-target",amount=1,type="item"}},
     type = "recipe"        
 }
 
@@ -47,6 +49,7 @@ local amtargete = table.deepcopy(data.raw["constant-combinator"]["constant-combi
 amtargete.name = "astmine-target"
 -- We can't put this on resources, because resources need to not be put under it.
 amtargete.collision_mask = {"item-layer", "object-layer", "player-layer", "water-tile","resource-layer"}
+amtargete.collision_mask = {layers = {item = true, object = true, player = true, water_tile = true, resource = true}}
 amtargete.item_slot_count = 1
 amtargete.max_health = 250
 amtargete.minable = {
@@ -274,32 +277,43 @@ local astminmixedr = {
     enabled = false,
     ingredients = {
         {
-          "rocket-control-unit",
-          5
+          name="processing-unit",
+          amount=5,
+          type="item"
         },
         {
-          "roboport",
-          1
+          name="speed-module",
+          amount=5,
+          type="item"
         },
         {
-          "logistic-robot",
-          10
+          name="roboport",
+          amount=1,
+          type="item"
         },
         {
-          "nuclear-reactor",
-          1
+          name="logistic-robot",
+          amount=10,
+          type="item"
         },
         {
-          "radar",
-          5
+          name="nuclear-reactor",
+          amount=1,
+          type="item"
         },
         {
-          "electric-mining-drill",
-          20
+          name="radar",
+          amount=5,
+          type="item"
+        },
+        {
+          name="electric-mining-drill",
+          amount=20,
+          type="item"
         }
     },
     name = "astmine-mixed",
-    result = "astmine-mixed",
+    results = {{name="astmine-mixed",amount=1,type="item"}},
     type = "recipe"
 }
 
@@ -317,28 +331,33 @@ local astminupg5r = {
     enabled = false,
     ingredients = {
         {
-          "rocket-control-unit",
-          10
+          name="processing-unit",
+          amount=10,
+          type="item"
         },
         {
-          "roboport",
-          2
+          name="roboport",
+          amount=2,
+          type="item"
         },
         {
-          "logistic-robot",
-          50
+          name="logistic-robot",
+          amount=50,
+          type="item"
         },
         {
-          "nuclear-reactor",
-          2
+          name="nuclear-reactor",
+          amount=2,
+          type="item"
         },
         {
-          "radar",
-          10
+          name="radar",
+          amount=10,
+          type="item"
         }
     },
     name = "astmine-upgrade-5",
-    result = "astmine-upgrade-5",
+    results = {{name="astmine-upgrade-5",amount=1,type="item"}},
     type = "recipe"
 }
 
@@ -351,32 +370,38 @@ local astminupg25r = {
     enabled = false,
     ingredients = {
         {
-            "rocket-control-unit",
-            50
+            name="processing-unit",
+            amount=50,
+            type="item"
         },
         {
-            "roboport",
-            10
+            name="roboport",
+            amount=10,
+            type="item"
         },
         {
-            "logistic-robot",
-            100
+            name="logistic-robot",
+            amount=100,
+            type="item"
         },
         {
-            "radar",
-            20
+            name="radar",
+            amount=20,
+            type="item"
         },
         {
-            "low-density-structure",
-            100
+            name="low-density-structure",
+            amount=100,
+            type="item"
         },
         {
-            "rocket-silo",
-            1
+            name="rocket-silo",
+            amount=1,
+            type="item"
         }
     },
     name = "astmine-upgrade-25",
-    result = "astmine-upgrade-25",
+    results = {{name="astmine-upgrade-25",amount=1,type="item"}},
     type = "recipe"
 }
 
@@ -387,28 +412,33 @@ local astminupgr = {
     enabled = false,
     ingredients = {
         {
-            "roboport",
-            10
+            name="roboport",
+            amount=10,
+            type="item"
         },
         {
-            "construction-robot",
-            100
+            name="construction-robot",
+            amount=100,
+            type="item"
         },
         {
-            "solar-panel",
-            100
+            name="solar-panel",
+            amount=100,
+            type="item"
         },
         {
-            "accumulator",
-            50
+            name="accumulator",
+            amount=50,
+            type="item"
         },
         {
-            "low-density-structure",
-            100
+            name="low-density-structure",
+            amount=100,
+            type="item"
         }
     },
     name = "astmine-upgrade-module",
-    result = "astmine-upgrade-module",
+    results = {{name="astmine-upgrade-module",amount=1,type="item"}},
     type = "recipe"
 }
 
@@ -501,7 +531,8 @@ local resourcetech = {
     }
 
 -- If advanced mining enabled, add our items.
-if settings.startup["astmine-makerockets"].value then
+-- Currently disabled.
+if false and settings.startup["astmine-makerockets"].value then
     data:extend({amtargeti,amtargetr,amtargete,astminmixed,astminmixedr,astminupg5,astminupg25,astminupg5r,astminupg25r,astminupg,astminupgr,resourcetech,upgradetech})
     table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "astmine-target"})
     table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "astmine-mixed"})

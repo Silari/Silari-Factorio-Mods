@@ -1,12 +1,12 @@
 -- Some conventions I need to try and hold to:
 -- ALWAYSALWAYSALWAYS check for substitutes!
 -- surfname = get_sub_surface(surfacename)
--- surftable = global.astmine.surfaces[surfname]
--- forcetable = global.astmine.surfaces[surfname].forces[forcename] -- note there's a init_force function that should be used instead. It inits if needed and returns the force table.
--- restable = global.astmine.surfaces[surfname].resources
+-- surftable = storage.astmine.surfaces[surfname]
+-- forcetable = storage.astmine.surfaces[surfname].forces[forcename] -- note there's a init_force function that should be used instead. It inits if needed and returns the force table.
+-- restable = storage.astmine.surfaces[surfname].resources
 
 -- Our data layout
--- global.astmine
+-- storage.astmine
     -- .surfaces = {}
         -- .forces = {force.name = table} -- table of forces to hold their mining info
             -- .orbiting = {resource-name = {table of "resource type" = table of {level = count}}}
@@ -52,7 +52,7 @@ function get_sub_surface(surfacename)
         return 'nauvis'
     end
     -- Returns the surface substituted for this surface, or this surface if not substituted.
-    subsurf = global.astmine.substitute[surfacename]
+    subsurf = storage.astmine.substitute[surfacename]
     if subsurf then
         return subsurf
     end
@@ -60,12 +60,12 @@ function get_sub_surface(surfacename)
 end
 
 function set_sub_surface(surfacename, nametosub)
-    global.astmine.substitute[surfacename] = nametosub
+    storage.astmine.substitute[surfacename] = nametosub
 end
 
 --Command to get information about the current surface, based on using player's force.
 function surfaceinfo(event)
-    --log(serpent.block(global.astmine))
+    --log(serpent.block(storage.astmine))
     --log(event.parameter)
     local force, surface, player, message
     message = "An error occurred, no valid return found." -- Should be replaced so seeing it means something went wrong.
@@ -97,7 +97,7 @@ function surfaceinfo(event)
     end
     -- surfname should always point to a valid surface table.
     --log("surfaceinfo: " .. surfname .. " : " .. force.name)
-    local surftable = global.astmine.surfaces[surfname]
+    local surftable = storage.astmine.surfaces[surfname]
     --log(serpent.block(surftable))
     local forcetable = surftable.forces[force.name]
     --log("post forcetable" .. serpent.block(forcetable))
@@ -151,7 +151,7 @@ function surfaceinfo(event)
     end
     -- Grab the table that lists resources for this surface. It may be in the surftable
     -- If resources isn't defined for that surface, we instead use the default table.
-    local restable = (surftable.resources or global.astmine.default)
+    local restable = (surftable.resources or storage.astmine.default)
     local resources = ""
     for name, value in pairs(restable) do
         resources = resources .. "\n    " .. name .. " Base Rate: " .. value["rate"] .. " per minute"
@@ -164,7 +164,11 @@ function surfaceinfo(event)
     else
         message = message .. "\nUnable to find resources for surface!"
     end
-    message = message .. "\nYou can use the 'rebuild' parameter to force rebuilding the resource table for this surface."
+    if event.parameter ~= "rebuild" then
+        message = message .. "\nYou can use the 'rebuild' parameter to force rebuilding the resource table for this surface."
+    else
+        message = message .. "\nSurface rebuilt"
+    end
     --log(message)
     if player then -- Used by a player, so print to them.
         player.print(message)
@@ -180,14 +184,14 @@ end
 function init_force(forcename, surfacename)
     surfname = get_sub_surface(surfacename)
     --game.print("Surfname: " .. surfname)
-    surftable = global.astmine.surfaces[surfname]
+    surftable = storage.astmine.surfaces[surfname]
     --game.print("init force" .. serpent.block(surftable))
     -- Surface hasn't been initialized, do it now.
     if not surftable then
         if not check_surface(surfacename) then return false end -- Don't use this surface for anything
-        global.astmine.surfaces[surfacename] = {forces = {}}
+        storage.astmine.surfaces[surfacename] = {forces = {}}
         make_resource_table(surfacename)
-        surftable = global.astmine.surfaces[surfname]
+        surftable = storage.astmine.surfaces[surfname]
     end
     -- If we haven't made a table for the force yet, do it
     if not surftable.forces[forcename] then
@@ -210,12 +214,12 @@ function check_surface(surfacename)
     if settings.startup["astmine-singlesurface"].value then
         return true -- Under single surface, every surface is valid.
     end
-    if global.astmine.substitute[surfacename] then return false end -- Surface is subbed, do nothing
+    if storage.astmine.substitute[surfacename] then return false end -- Surface is subbed, do nothing
     if surfacename == "aai-signals" then -- Probably for the inter-planet signals
         set_sub_surface(surfacename,"")
         return false
     end
-    if game.active_mods["space-exploration"] then
+    if script.active_mods["space-exploration"] then
         --log("SE installed")
         -- The fake surface used for the star map view. Always invalid.
         if surfacename == "starmap-1" then 
@@ -254,7 +258,7 @@ function check_surface(surfacename)
             return false
         end
     end
-    if game.active_mods["Factorissimo2"] or game.active_mods["factorissimo-2-notnotmelon"] then
+    if script.active_mods["Factorissimo2"] or script.active_mods["factorissimo-2-notnotmelon"] then
         --log("Factorissimo2 or fork installed")
         -- We want to ignore any Factorissimo surface
         if string.sub(surfacename,1,14) == "Factory floor " then
@@ -281,7 +285,7 @@ function get_radius_max(surfacename, miningrate)
     -- For planets radius multiplier is 1/10000 the radius. Nauvis is an exception: (nauvis radius = 5691.7291654647397, radius_multiplier = 0.66069768030008618)
     --log("get_radius_max : " .. surfacename)
     -- SE uses a different name for nauvis
-    if game.active_mods["space-exploration"] then
+    if script.active_mods["space-exploration"] then
         if surfacename == 'nauvis' then surfacename = 'Nauvis' end
         local sezone = remote.call("space-exploration", "get_zone_from_name", {zone_name = surfacename})
         if sezone then
@@ -303,15 +307,15 @@ function make_resource_table(surfacename, ressurfacename)
     local restable
     log("Making resource table for: " .. (surfacename or "default"))
     if surfacename == nil then
-        restable = global.astmine.default -- No surface given so we init the default table, which any surface without a table will use.
+        restable = storage.astmine.default -- No surface given so we init the default table, which any surface without a table will use.
         -- This table is based on nauvis settings, because it is guaranteed to exist.
         surfacename = 'nauvis'
     else
         -- By default we don't make a resources table for a surface, so it would use the default. Since we were explicitly told to init a specific surface, we make the table.
-        if global.astmine.surfaces[surfacename].resources == nil then
-            global.astmine.surfaces[surfacename].resources = {}
+        if storage.astmine.surfaces[surfacename].resources == nil then
+            storage.astmine.surfaces[surfacename].resources = {}
         end
-        restable = global.astmine.surfaces[surfacename].resources
+        restable = storage.astmine.surfaces[surfacename].resources
     end
     -- If we weren't given a surface to base resources on, use the surface we're making the table for
     if ressurfacename == nil then
@@ -323,7 +327,7 @@ function make_resource_table(surfacename, ressurfacename)
         return false
     end
     local mapgen = surface.map_gen_settings.autoplace_controls
-    --log(serpent.block(mapgen))
+    log(serpent.block(mapgen))
     if mapgen == nil then
         log("No autoplace controls for surface " .. surfacename)
         -- This surface isn't valid since it has no resources. Remove it.
@@ -331,8 +335,8 @@ function make_resource_table(surfacename, ressurfacename)
         return false
     end
     -- This should get all resource entities so we can add them to our table.
-    for name, resource in pairs(game.get_filtered_entity_prototypes({{filter="type", type="resource"}})) do
-        --log("Resource name: " .. name)
+    for name, resource in pairs(prototypes.get_entity_filtered({{filter="type", type="resource"}})) do
+        log("Resource name: " .. name)
         -- I don't need to take into account anything about products EXCEPT fluids since we're generating the RESOURCE not the PRODUCTS. All we need to do is adjust amounts for map generation settings.
         local products = resource.mineable_properties.products
         -- We skip resources that make nothing, infinite resources, TODO optionally resources requiring fluids, 
@@ -344,10 +348,9 @@ function make_resource_table(surfacename, ressurfacename)
             else
                 local miningrate = astminebaserate -- Default rate to use for any ore.
                 if resource.autoplace_specification then -- Autoplace specification exists, try to match amounts with commonality of the resource
-                    -- TODO Finish this
-                    --log("Control name: " .. resource.autoplace_specification.control)
                     local rescontrols = mapgen[resource.autoplace_specification.control]
-                    --log(serpent.block(rescontrols))
+                    --log("Control name: " .. resource.autoplace_specification.control)
+                    log(serpent.block(rescontrols))
                     if rescontrols ~= nil then
                         -- Averages frequency, richness, and size values to get the rate adjustment for the surface.
                         local avgrate = (rescontrols.frequency + rescontrols.richness + rescontrols.size) / 3
@@ -365,11 +368,11 @@ function make_resource_table(surfacename, ressurfacename)
                 else
                     restable[name] = nil -- Clears out any value less than one that may have been stored previously
                 end
-                --log(serpent.block(restable[name]))
+                log(serpent.block(restable[name]))
             end
         end
     end
-    --log(serpent.block(restable))
+    log(serpent.block(restable))
     return true
 end
 
@@ -435,22 +438,22 @@ end
 --Ensures that globals were initialized. Called on init and by on_configuration_changed
 function init_mining()
     log("Asteroid Mining advanced mining init")
-    if not global.astmine then -- Holds asteroid mining data
-      global.astmine = {}
+    if not storage.astmine then -- Holds asteroid mining data
+      storage.astmine = {}
     end
-    if not global.astmine.surfaces then -- Holds per surface data, including force info for the surface
+    if not storage.astmine.surfaces then -- Holds per surface data, including force info for the surface
         -- nauvis is initialized here since the game doesn't call the surface_created event for it
         -- This is no longer true - we initialize surfaces when they are first used, not before.
-        global.astmine.surfaces = {}
+        storage.astmine.surfaces = {}
     end
-    if not global.astmine.substitute then -- Holds surface substitutions - ie so surface and orbit surface share.
-      global.astmine.substitute = {}
+    if not storage.astmine.substitute then -- Holds surface substitutions - ie so surface and orbit surface share.
+      storage.astmine.substitute = {}
     end
-    if not global.astmine.default then -- Holds resources for any surface not configured.
-      global.astmine.default = {}
+    if not storage.astmine.default then -- Holds resources for any surface not configured.
+      storage.astmine.default = {}
     end
     -- If default surface wasn't init yet, do so now.
-    if next(global.astmine.default) == nil then
+    if next(storage.astmine.default) == nil then
         --log("Making resource table")
         make_resource_table()
     end
@@ -459,27 +462,31 @@ function init_mining()
         -- Check this is a good surface to use (skips anything with a sub or blacklisted)
         if check_surface(name) then  -- Removed: name ~= "nauvis" and 
             -- Skip any surface we already have a table for.
-            if global.astmine.surfaces[name] == nil then
-                global.astmine.surfaces[name] = {}
-                global.astmine.surfaces[name]["forces"] = {}
+            if storage.astmine.surfaces[name] == nil then
+                storage.astmine.surfaces[name] = {}
+                storage.astmine.surfaces[name]["forces"] = {}
             end
             make_resource_table(name)
         end
     end
-    if not global.astmine.research then
-        global.astmine.research = {}
+    if not storage.astmine.research then
+        storage.astmine.research = {}
     end
 end
 
 script.on_init(function()
-  init_mining()
-  commands.add_command("asteroid","Displays Asteroid Mining surface info",surfaceinfo)
-  --addremote()
+    init_mining()
+    if not commands.commands["asteroid"] then
+        commands.add_command("asteroid","Displays Asteroid Mining surface info",surfaceinfo)
+    end
+    --addremote()
 end)
 
 script.on_load(function()
-  commands.add_command("asteroid","Displays Asteroid Mining surface info",surfaceinfo)
-  --addremote()
+    if not commands.commands["asteroid"] then
+        commands.add_command("asteroid","Displays Asteroid Mining surface info",surfaceinfo)
+    end
+    --addremote()
 end)
 
 
@@ -488,11 +495,11 @@ end)
 function techdone(event)
     --game.print(serpent.block(event) .. " : techname : " .. event.research.name)
     -- Tech result is what kind of miner to give
-    local techresult = global.astmine.research[event.research.name]
+    local techresult = storage.astmine.research[event.research.name]
     --game.print(techresult)
     if techresult == nil then return end -- Not in our table, ignore
     local forcename = event.research.force.name
-    local surfacename = global.astmine.researcht or 'nauvis'
+    local surfacename = storage.astmine.researcht or 'nauvis'
     surfacename = get_sub_surface(surfacename)
     local forcetable = init_force(forcename, surfacename)
     addlevel(forcetable.orbiting, techresult, 1)
@@ -500,19 +507,16 @@ end
 
 function techundone(event)
     --game.print(serpent.block(event) .. " : techname : " .. event.research.name)
-    local techresult = global.astmine.research[event.research.name]
+    local techresult = storage.astmine.research[event.research.name]
     if techresult == nil then return end -- Not in our table, ignore
     local forcename = event.research.force.name
-    local surfacename = global.astmine.researcht or 'nauvis'
+    local surfacename = storage.astmine.researcht or 'nauvis'
     surfacename = get_sub_surface(surfacename)
     local forcetable = init_force(forcename, surfacename)
     addlevel(forcetable.orbiting, techresult, -1)
 end
 
-script.on_event(defines.events.on_research_finished, techdone) -- Give miners if a miner research was completed
-script.on_event(defines.events.on_research_reversed, techundone) -- undo the above if research was uncompleted
-
-script.on_event(defines.events.on_surface_created,function(event)
+function surfcreated(event)
     -- We need to add the default tables for our surface when it's created.
     -- Forces is empty for now, it'll get filled in as needed by the rocket launch events. This means our nth tick loop can save time by not iterating over a bunch of forces that have nothing.
     local surface = game.surfaces[event.surface_index]
@@ -522,32 +526,31 @@ script.on_event(defines.events.on_surface_created,function(event)
     end
     if not check_surface(surface.name) then return end -- Don't use this surface for anything
     local surfacename = get_sub_surface(surface.name)
-    if not global.astmine.surfaces[surfacename] then
-        global.astmine.surfaces[surfacename] = {forces = {}} 
+    if not storage.astmine.surfaces[surfacename] then
+        storage.astmine.surfaces[surfacename] = {forces = {}} 
     end
     make_resource_table(surfacename)
     updateplayerGUI(surfacename)
-end)
+end
 
 function renamesurface(event)
     -- OLDTODO This needs to account for the new name being substituted already. As it is the new name's sub value gets overwritten by the old one. DONOTFIX: Honestly ok with that since it's a different surface.
     local newname = event.new_name
     local oldname = event.old_name
     -- Move the surface table, which includes all our force tables.
-    global.astmine.surfaces[newname] = global.astmine.surfaces[oldname]
-    global.astmine.surfaces[oldname] = nil
+    storage.astmine.surfaces[newname] = storage.astmine.surfaces[oldname]
+    storage.astmine.surfaces[oldname] = nil
     -- If the name is in the subtable remove the old and add the new with the old target. If it's not both are nil now.
-    global.astmine.substitute[newname] = global.substitute[oldname]
-    global.astmine.substitute[oldname] = nil
+    storage.astmine.substitute[newname] = storage.substitute[oldname]
+    storage.astmine.substitute[oldname] = nil
     -- If the name is in the subtable as a target, update to the new info
-    for surfname, subname in pairs(global.substitute) do
+    for surfname, subname in pairs(storage.substitute) do
         if subname == oldname then
-            global.substitutes[surfname] = newname
+            storage.substitutes[surfname] = newname
         end
     end
 end
 
-script.on_event(defines.events.on_surface_renamed,renamesurface) -- Need to update anything using the old name
 
 -- **************************
 -- Rocket launching code
@@ -667,7 +670,7 @@ function rocklaunch(event)
             modtype = string.sub(itemname,j+1)
             --game.print('asteroid miner: ' .. modtype)
             -- Does the resource this module is for exist on this surface?
-            surftable = global.astmine.surfaces[surfname]
+            surftable = storage.astmine.surfaces[surfname]
             if surftable.resources[modtype] == nil then -- if not, it's a bad launch
                 badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-resource"})
                 return
@@ -732,8 +735,17 @@ function rocklaunch(event)
     if updategui then updateplayerGUI() end
 end
 
--- Event for when a rocket has been launched, we need to see what was on it.
-script.on_event(defines.events.on_rocket_launched,rocklaunch)
+-- We only register these events if advanced mode is on.
+-- Currently disabled.
+if false and settings.startup["astmine-makerockets"].value then
+    script.on_event(defines.events.on_research_finished, techdone) -- Give miners if a miner research was completed
+    script.on_event(defines.events.on_research_reversed, techundone) -- undo the above if research was uncompleted
+    script.on_event(defines.events.on_surface_created,surfcreated)
+    script.on_event(defines.events.on_surface_renamed,renamesurface) -- Need to update anything using the old name
+    -- Event for when a rocket has been launched, we need to see what was on it.
+    script.on_event(defines.events.on_rocket_launched,rocklaunch)
+end
+
 
 -- **************************
 -- on_tick control code. Generates and spawns resources.
@@ -779,7 +791,7 @@ end
 function spawnresource()
     local resamount = settings.global["astmine-resamount"].value -- I should move this to getore - it's the ONLY place it's used!
     -- Iterate over our table of forces. Most cases, this will be nothing, as no one has sent anything up, or just the "player" force.
-    for surfacename, asurftable in pairs(global.astmine.surfaces) do
+    for surfacename, asurftable in pairs(storage.astmine.surfaces) do
         local surftable = asurftable
         --game.print(surfacename .. " : " .. serpent.block(surftable))
         local subname = get_sub_surface(surfacename)
@@ -793,7 +805,7 @@ function spawnresource()
         end
         -- Surface is subbed. We need to have it use a different table.
         if subname then
-            surftable = global.astmine.surfaces[subname]
+            surftable = storage.astmine.surfaces[subname]
         end
         -- Iterate every surface that we've stored Asteroid Mining data for
         -- If no surfaces have been initialized yet for this force, it should skip.
@@ -840,16 +852,16 @@ function gather_resources()
     -- can't write this until I figure out HTF the resource weighting works
     --game.print("Gathering!")
     -- Iterate every surface with data - ie those that aren't subbed.
-    for surfacename, surftable in pairs(global.astmine.surfaces) do
+    for surfacename, surftable in pairs(storage.astmine.surfaces) do
         if surfacename ~= get_sub_surface(surfacename) then
             -- If the surface was substituted it no longer gets processed here.
             goto skipsurf
         end
         -- Table with resources available on this surface.
-        local restable = global.astmine.surfaces[surfacename].resources
+        local restable = storage.astmine.surfaces[surfacename].resources
         -- If resources isn't defined for that surface, we instead use the default table.
         if restable == nil then
-            restable = global.astmine.default
+            restable = storage.astmine.default
         end
         local totalore = 0 -- Stores total ore rate for this surface, lazy init
         for forcename, forcetable in pairs(surftable.forces) do 

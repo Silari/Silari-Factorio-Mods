@@ -3,6 +3,7 @@ require("__Asteroid_Mining__.scripts.icons")
 amfunc = {}
 amfunc.allowprod = settings.startup["astmine-allowprod"].value
 amfunc.useminer = settings.startup["astmine-enableminer"].value
+amfunc.hiderec = not settings.startup["astmine-hiderecipes"].value
 amfunc.reccategory = "crafting" -- Recipe category for asteroid processing to use
 --Result for processing resource specific chunks
 amfunc.normal = { -- Gives 6000 chunks on average
@@ -95,7 +96,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
       allow_decomposition = false,
       always_show_products = true,
       category = amfunc.reccategory,
-      enabled = true,
+      enabled = amfunc.hiderec,
       energy_required = 5,
       ingredients = {
         {
@@ -149,7 +150,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
     local processasteroid = {
       allow_decomposition = false,
       category = amfunc.reccategory,
-      enabled = true,
+      enabled = amfunc.hiderec,
       name = "asteroid-" .. name,
       localised_name = {"recipe-name.asteroid-chunk", {"item-name." .. name}},
       localised_description = {"recipe-description.asteroid-chunk", {"item-name." .. name}},
@@ -157,7 +158,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
       expensive = {
         allow_decomposition = false,
         always_show_products = true,
-        enabled = true,
+        enabled = amfunc.hiderec,
         energy_required = 10,
         ingredients = {
           {
@@ -170,7 +171,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
       normal = {
         allow_decomposition = false,
         always_show_products = true,
-        enabled = true,
+        enabled = amfunc.hiderec,
         energy_required = 10,
         ingredients = {
           {
@@ -226,11 +227,15 @@ function amfunc.addtype(name,atint,desc) --,pictures)
         result = "miner-module-" .. name,
         type = "recipe"        
     }
-    data:extend{reschunk,procreschunk,newasteroid,processasteroid}
+    data:extend{reschunk,procreschunk,newasteroid}
     if amfunc.useminer then -- Disabled in 1.0 for the new generation system, once in place.
-        data:extend{minerres,newminer}
+        data:extend{minerres,newminer,processasteroid}
         --This makes the miner module available when rocket silo is researched
         table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "miner-module-" .. name})
+        if not amfunc.hiderec then
+            table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "asteroid-" .. name})
+            table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = name .. suffix})
+        end
     end
     if amfunc.allowprod then -- Setting to enable prod module usage in asteroid processing
         amfunc.addmodules(processasteroid.name)

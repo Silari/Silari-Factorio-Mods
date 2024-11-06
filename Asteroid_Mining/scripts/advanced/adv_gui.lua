@@ -112,7 +112,7 @@ function updatesurfsel(surfsel,playsurf)
         -- end
     -- end
     -- Iterate over any surface that has surface info - they should be valid if they're in the list.
-    for key, value in pairs(global.astmine.surfaces) do
+    for key, value in pairs(storage.astmine.surfaces) do
         if key ~= playsurf then -- Ignore player's current surface - we already have that.
             surfsel.add_item(key)
         end
@@ -138,7 +138,7 @@ function updatetab(tabpane, player, surfacename)
         invalid(tabpane)
         return
     end
-    local surftable = global.astmine.surfaces[surfname] -- Table with the info for this surface.
+    local surftable = storage.astmine.surfaces[surfname] -- Table with the info for this surface.
     --log(serpent.block(surftable))
     if surftable == nil then -- this doesn't usually happen but might if the surface was cleared/deleted since the GUI was opened.
         invalid(tabpane)
@@ -151,7 +151,7 @@ function updatetab(tabpane, player, surfacename)
     -- log(serpent.block(orbiting))
     -- find open tab index, if 1 resources, if 2 miners+upgrades.
     if tabpane.selected_tab_index == 1 then
-        local restable = (surftable.resources or global.astmine.default) -- holds resources on this surface
+        local restable = (surftable.resources or storage.astmine.default) -- holds resources on this surface
         --log(serpent.block(restable))
         -- A secret tool that'll help us later.
         local crates = {}

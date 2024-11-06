@@ -1,5 +1,5 @@
 -- Our data layout
--- global.astmine
+-- storage.astmine
     -- .surfaces = {}
         -- .forces = {force.name = table} -- table of forces to hold their mining info
             -- .orbiting = {resource-name = {table of "resource type" = table of {level = count}}}
@@ -24,7 +24,7 @@ end
 --get-substitute - String name of the surface to get the substitute for.
 --Return: the name of the surface to substitute, or nil if not set. A value of "" (an empty string) means the surface has been disabled for use in the mod, generally due to being a special surface (like Factorissimo factory floors).
 myinterfaces["get-substitute"] = function(surfacename) -- TESTED GOOD
-    return global.astmine.substitute[tostring(surfacename)]
+    return storage.astmine.substitute[tostring(surfacename)]
 end
 
 --Function to set a substitute surface. Any asteroid mining functions that attempt to use a substitute surface instead acts on the substituted surface.
@@ -39,21 +39,21 @@ myinterfaces["set-substitute"] = function(surfacename, subsurface) -- TESTED GOO
     --game.print("astmine-sub: " .. surfacename .. " : " .. subsurface)
     if surfacename and subsurface then
         --If the surface is substituted, use that instead.
-        local subsubsurface = global.astmine.substitute[subsurface]
+        local subsubsurface = storage.astmine.substitute[subsurface]
         if subsubsurface ~= nil and subsubsurface ~= "" then
-            global.astmine.substitute[surfacename] = subsubsurface
+            storage.astmine.substitute[surfacename] = subsubsurface
         else
-            global.astmine.substitute[surfacename] = subsurface
+            storage.astmine.substitute[surfacename] = subsurface
         end
     end
-    return global.astmine.substitute[surfacename]
+    return storage.astmine.substitute[surfacename]
 end
 
 
 --Remote function to clear all info for surface_name
 --clear-surface - String: surface to clear info. This removes ALL info for a surface - the resource table, force orbitals, force available ore, force upgrades in orbit. It does not clear any substitute set for or pointing at the surface. Some actions may lead to the surface table being rebuilt, like launching a rocket. NOTE: Deleted surfaces with info left in this table will work fine. If the surface is going to be recreated later (like SE), leaving it is fine. This is more in the case of remaking an entirely new surface with the old name.
 myinterfaces["clear-surface"] = function(surfacename) -- TESTED GOOD
-    global.astmine.surfaces[surfacename] = nil
+    storage.astmine.surfaces[surfacename] = nil
 end
 
 --**** Interfaces for manipulating a surface's ores/rates
@@ -62,7 +62,7 @@ end
 --Return: true if success, false if failed (surface not found)
 myinterfaces["set-baserate"] = function(surfacename, resourcename, baserate, setmax) -- TESTED GOOD
     surfacename = tostring(surfacename)
-    surftable = global.astmine.surfaces[surfacename]
+    surftable = storage.astmine.surfaces[surfacename]
     if surftable == nil then return false end -- Bad surface name, no table exists
     restable = surftable.resources
     if restable == nil then -- This shouldn't happen if surftable exists
@@ -85,7 +85,7 @@ end
 --Return: true if succeded. false if failed (due to surface table not existing)
 myinterfaces["set-maxrate"] = function(surfacename, resourcename, maxrate) -- TESTED GOOD
     surfacename = tostring(surfacename)
-    surftable = global.astmine.surfaces[surfacename]
+    surftable = storage.astmine.surfaces[surfacename]
     if surftable == nil then return false end -- Bad surface name, no table exists
     restable = surftable.resources
     if restable == nil then -- This shouldn't happen if surftable exists
@@ -109,7 +109,7 @@ end
 --clear-resources - String: surface to clear the resource table of. Surface will no longer provide resources and may get set as disabled if certain checks run. NOTE: If your desire is to make the surface invalid for asteroid mining, use set-substitute with a value of "" instead. This function is more to build a custom set of resources for a surface.
 --Return: true
 myinterfaces["clear-resources"] = function(surfacename) -- TESTED GOOD
-    global.astmine.surfaces[surfacename].resources = {}
+    storage.astmine.surfaces[surfacename].resources = {}
     return true
 end
 
@@ -128,7 +128,7 @@ end
 myinterfaces["add-techforminer"] = function(techname, resourcename) -- TESTED GOOD
     techname = tostring(techname)
     resourcename = tostring((resourcename or "astmine-mixed"))
-    global.astmine.research[techname] = resourcename
+    storage.astmine.research[techname] = resourcename
     --game.print("Setting " .. techname .. " : " .. resourcename)
     return true
 end
@@ -138,7 +138,7 @@ end
 --set-techsurface - String: name of the surface to give any free miners from technology research to. Default is nauvis, which should be fine unless that surface is not used at all.
 --Return: true
 myinterfaces["set-techsurface"] = function(surfacename) -- TESTED GOOD
-    global.astmine.researcht = surfacename
+    storage.astmine.researcht = surfacename
     return true
 end
 

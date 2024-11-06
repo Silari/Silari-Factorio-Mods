@@ -54,7 +54,7 @@ require("scripts/category.lua") -- Sets our asteroid processing category based o
 
 allowprod = settings.startup["astmine-allowprod"].value
 useminer = settings.startup["astmine-enableminer"].value
-
+hiderec = not settings.startup["astmine-hiderecipes"].value
 
 local chunkstacksize = 1000
 if mods["space-exploration"] then
@@ -95,10 +95,12 @@ local minermodule = {
     localised_name = {"item-name.miner-module", "Mixed"},
     localised_description = {"item-description.miner-module", "mixed"},
     order = "n[miner-module]",
-    rocket_launch_product = {
-        "asteroid-mixed",
-        1000
-    },
+    rocket_launch_products = {{
+        name="asteroid-mixed",
+        amount=1000,
+        type="item"
+    }},
+    send_to_orbit_mode = "automated",
     stack_size = 1,
     subgroup = subminer,
     type = "item"
@@ -109,16 +111,18 @@ local minermodulerecipe = {
   enabled = false,
   ingredients = {
     {
-      "electric-mining-drill",
-      5
+      name="electric-mining-drill",
+      amount=5,
+      type="item"
     },
     {
-      "radar",
-      5
+      name="radar",
+      amount=5,
+      type="item"
     }
   },
   name = "miner-module",
-  result = "miner-module",
+  results = {{name="miner-module",amount=1,type="item"}},
   type = "recipe"
 }
 
@@ -151,63 +155,39 @@ local processmixed = {
   localised_name = {"recipe-name.asteroid-chunk", "Mixed"},
   localised_description = {"recipe-description.asteroid-chunk", "mixed"},
   order = "k[yasteroid-mixed]",
-  expensive = {
-    enabled = true,
-    energy_required = 10,
-    ingredients = {
+  enabled = hiderec,
+  energy_required = 10,
+  ingredients = {
       {
-        "asteroid-mixed",
-        1
+        name="asteroid-mixed",
+        amount=1,
+        type="item"
       }
-    },
-    results = {
-        {
-          amount = 8,
-          name = "iron-ore-chunk",
-          probability = 0.53
-        },
-        {
-          amount = 9,
-          name = "copper-ore-chunk",
-          probability = 1
-        },
-        {
-          amount = 6,
-          name = "coal-chunk",
-          probability = 0.22
-        }
-    },
   },
-  normal = {
-    enabled = true,
-    energy_required = 10,
-    ingredients = {
-      {
-        "asteroid-mixed",
-        1
-      }
-    },
-    results = {
+  results = {
         {
           amount = 4,
           name = "iron-ore-chunk",
-          probability = 0.53
+          probability = 0.53,
+          type="item"
         },
         {
           amount = 6,
           name = "copper-ore-chunk",
-          probability = 0.65
+          probability = 0.65,
+          type="item"
         },
         {
           amount = 2,
           name = "coal-chunk",
-          probability = 0.21
+          probability = 0.21,
+          type="item"
         }
-    },
   },
   subgroup = "raw-material",
   type = "recipe"
 }
+
 if allowprod then
     addmodules(processmixed.name)
 end
@@ -256,20 +236,20 @@ function addtype(name,atint,desc) --,pictures)
       allow_decomposition = false,
       always_show_products = true,
       category = reccategory,
-      enabled = true,
+      enabled = hiderec,
       energy_required = 5,
       ingredients = {
         {
-          name .. suffix,
-          1
+          name=name .. suffix,
+          amount=1,
+          type="item"
         }
       },
       name = name .. suffix,
       order = "d[asteroidchunk-" .. name .. "]",
       localised_name = {"recipe-name.resource-chunk", {"item-name." .. name}},
       localised_description = {"recipe-description.resource-chunk", {"item-name." .. name}},
-      result = name,
-      result_count = 24,
+      results = {{name=name,amount=24,type="item"}},
       type = "recipe"
     }
     if desc == nil then
@@ -299,48 +279,28 @@ function addtype(name,atint,desc) --,pictures)
       subgroup = subchunk,
       type = "item"        
     }
-    
+    --log(serpent.block(newasteroid))
     --We need to set the result name to the name of our resource chunk
     mynormal = table.deepcopy(normal)
     mynormal[1].name = name .. suffix
-    myexpensive = table.deepcopy(expensive)
-    myexpensive[1].name = name .. suffix
+    mynormal[1].type = "item"
+    --Expensive mode is gone.
+    --myexpensive = table.deepcopy(expensive)
+    --myexpensive[1].name = name .. suffix
     
     --RECIPE: Processing the asteroid chunks into resource chunks
     local processasteroid = {
       allow_decomposition = false,
       category = reccategory,
-      enabled = true,
       name = "asteroid-" .. name,
       localised_name = {"recipe-name.asteroid-chunk", {"item-name." .. name}},
       localised_description = {"recipe-description.asteroid-chunk", {"item-name." .. name}},
       order = "k[zasteroid-" .. name .. "]",
-      expensive = {
-        allow_decomposition = false,
-        always_show_products = true,
-        enabled = true,
-        energy_required = 10,
-        ingredients = {
-          {
-            "asteroid-" .. name,
-            1
-          }
-        },
-        results = myexpensive
-      },
-      normal = {
-        allow_decomposition = false,
-        always_show_products = true,
-        enabled = true,
-        energy_required = 10,
-        ingredients = {
-          {
-            "asteroid-" .. name,
-            1
-          }
-        },
-        results = mynormal
-      },
+      ingredients = {{name="asteroid-" .. name,amount=1,type="item"}},
+      results = mynormal,
+      always_show_products = true,
+      enabled = hiderec,
+      energy_required = 10,
       --subgroup = subchunk,
       type = "recipe"
     }
@@ -348,10 +308,11 @@ function addtype(name,atint,desc) --,pictures)
     --ITEM Miner module to get resource specific asteroids.
     local minerres = table.deepcopy(minermodule)
     minerres.name = "miner-module-" .. name
-    minerres.rocket_launch_product = {
-        "asteroid-" .. name,
-        1000
-    }
+    minerres.rocket_launch_products = {{
+        name="asteroid-" .. name,
+        amount=1000,
+        type="item"
+    }}
     minerres.order = "n[miner-module" .. name .. "]"
     minerres.icons = generateicons(name,atint) --Generate icon layers using given item
     minerres.localised_name = {"item-name.miner-module", {"item-name." .. name}}
@@ -362,20 +323,23 @@ function addtype(name,atint,desc) --,pictures)
         enabled = false,
         ingredients = {
             {
-              "electric-mining-drill",
-              5
+              name="electric-mining-drill",
+              amount=5,
+              type="item"
             },
             {
-              "radar",
-              5
+              name="radar",
+              amount=5,
+              type="item"
             },
             {
-                name,
-                5
+              name=name,
+              amount=5,
+              type="item"
             }
         },
         name = "miner-module-" .. name,
-        result = "miner-module-" .. name,
+        results = {{name="miner-module-" .. name,amount=1,type="item"}},
         type = "recipe"        
     }
     data:extend{reschunk,procreschunk,newasteroid,processasteroid}
@@ -383,6 +347,10 @@ function addtype(name,atint,desc) --,pictures)
         data:extend{minerres,newminer}
         --This makes the miner module available when rocket silo is researched
         table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "miner-module-" .. name})
+        if not hiderec then
+            table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "asteroid-" .. name})
+            table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = name .. suffix})
+        end
     end
     if allowprod then -- Setting to enable prod module usage in asteroid processing
         addmodules(processasteroid.name)
@@ -396,31 +364,6 @@ bobnormal, bobexpensive = setmixed(processmixed)
 require("scripts/simple.lua")
 --These will be nill if Simple Silicon isn't installed
 simpnormal, simpexpensive = setmixed(processmixed)
-
---We don't rebalance the mixed chunks, but we DO adjust the amount from resource specific modules
-require("scripts/krastorio2.lua")
-krasnormal, krasexpensive = setmixed(processmixed)
-
---Krastorio overrides bobs/simple silicon
---If bobs is present, it's normal/expensive results should overwrite simplesilicons
---If it's not present, then overwrite normal/expensive with simplesilicon's if present
-if krasnormal then
-    normal = krasnormal
-elseif bobnormal then
-    normal = bobnormal
-elseif simpnormal then
-    normal = simpnormal 
-end
-if krasexpensive then
-    expensive = krasexpensive
-elseif bobexpensive then
-    expensive = bobexpensive
-elseif simpexpensive then
-    expensive = simpexpensive 
-end
-
-
-
 
 require("scripts/angels.lua")
 --We don't currently rebalance mixed asteroid for angels
@@ -446,9 +389,6 @@ if useminer then
     --Add Angels ores if present
     addangels()
 
-    --Add Krastorio 2 ores if present
-    addkras()
-
     --add various single ores from mods
     addsingles()
 
@@ -456,7 +396,9 @@ if useminer then
     data:extend{asteroidmixed,processmixed}
     --Add recipe to rocket tech
     table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "miner-module"})
-
+    if not hiderec then
+        table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "asteroid-mixed"})
+    end
     data:extend{minermodule,minermodulerecipe}
 end
 

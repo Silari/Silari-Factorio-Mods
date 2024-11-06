@@ -15,7 +15,7 @@ function on_changed(event)
     --log(serpent.block(event.mod_changes))
     --Fix for initial versions with ADV mining not setting surface resources.
     if event.mod_changes and event.mod_changes["Asteroid_Mining"] then
-        --log(serpent.block(global.astmine))
+        --log(serpent.block(storage.astmine))
         local oldver = event.mod_changes["Asteroid_Mining"].old_version
         if oldver == "0.9.8" or oldver == "0.9.9" then
             log("Found old AM version! Fixing up tables.")
@@ -28,12 +28,12 @@ function on_changed(event)
                     -- Good surface, (re)make the resource table. Old versions didn't make them on init/created.
                     make_resource_table(name)
                 else
-                    global.astmine.surfaces[name] = nil
+                    storage.astmine.surfaces[name] = nil
                 end
             end
             -- Possible for old version to have left partial info for a surface now deleted - clear those out.
             local removename = {}
-            for name, surftable in pairs(global.astmine.surfaces) do
+            for name, surftable in pairs(storage.astmine.surfaces) do
                 -- No resource table and no forces info means there is nothing here. Mark it to delete.
                 if surftable.resources == nil and table_size(surftable.forces) == 0 then
                     table.insert(removename, name)
@@ -41,14 +41,10 @@ function on_changed(event)
             end
             --log(serpent.block(removename))
             for _, name in ipairs(removename) do
-                global.astmine.surfaces[name] = nil
+                storage.astmine.surfaces[name] = nil
             end
         end
-        -- 0.9.10 changes a lot of stuff which I may not have tested enough. Warn users to make a backup.
-        if event.mod_changes["Asteroid_Mining"].new_version == "0.9.12" and settings.startup["astmine-makerockets"].value then
-            game.print("WARNING: You are using the advanced mode of Asteroid Mining. Please keep in mind it is still in a beta state. This update fixes some issues with multiple forces. Be sure to check the GUI and ensure surface info (amount of resources, orbital assets, etc) looks correct before saving your game. Making a backup of the save you loaded is recommended prior to saving over it.")
-        end
-        --log(serpent.block(global.astmine))
+        --log(serpent.block(storage.astmine))
     end
 end
 script.on_configuration_changed(on_changed)
