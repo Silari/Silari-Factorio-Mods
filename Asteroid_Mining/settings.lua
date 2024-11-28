@@ -30,13 +30,13 @@ data:extend({
         default_value = true,
         order = "[b]astmine-crushing"
     },
-    { -- Should we use Krastorio crushers for processing chunks if machines are present?
-        type = "bool-setting",
-        name = "astmine-k2crushing",
-        setting_type = "startup",
-        default_value = true,
-        order = "[b]astmine-k2crushing"
-    },
+    -- { -- Should we use Krastorio crushers for processing chunks if machines are present?
+        -- type = "bool-setting",
+        -- name = "astmine-k2crushing",
+        -- setting_type = "startup",
+        -- default_value = true,
+        -- order = "[b]astmine-k2crushing"
+    -- },
     { -- Should recipes be hidden until we research the rocket silo?
         type = "bool-setting",
         name = "astmine-hiderecipes",

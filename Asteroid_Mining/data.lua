@@ -9,6 +9,11 @@
 
 --Crafting machine tints? Not sure that's really used with the current setup
 
+--NEW rocket cost : 34100 iron ore, 60000 copper ore, 4500 coal, (97500 petro (175213 oil)
+--Needed chunks:     1421 iron chk,  2500 copper chk,  188 coal
+--Expected return:  36000 iron ore, 64800 copper ore, 5040 coal
+
+
 --Cost of a rocket: 49100 iron ore, 92500 copper ore,  9500 coal, (197500 petro (219444 oil, or 993750 oil))
 --Needed chunks:     2046 iron chnk, 3855 copper chunk, 396 coal
 --Expected return:  50880 iron ore, 93600 copper ore, 10800 coal
@@ -22,7 +27,7 @@
 -- 592.527 ore per minute with everything prod3'd as high as possible. NOT counting mining productivity.
 -- So just above an hour ROI. Not bad.
 
--- Expensive mode:
+-- Expensive mode - NO LONGER USED:
 --Cost of a rocket: 98200 iron ore, 204000 copper ore, 29000 coal
 --Needed chunks:     4092 iron chnk, 8500 copper chunk, 1209 coal
 --Expected return: 101760 iron ore, 216000 copper ore, 31680 coal
@@ -56,10 +61,10 @@ allowprod = settings.startup["astmine-allowprod"].value
 useminer = settings.startup["astmine-enableminer"].value
 hiderec = not settings.startup["astmine-hiderecipes"].value
 recenabled = false
-if mods["space-age"] then 
-    recenabled = true 
-    hiderec = true
-end
+-- if mods["space-age"] then 
+    -- recenabled = true 
+    -- hiderec = true
+-- end
 
 local chunkstacksize = 1000
 if mods["space-exploration"] then
@@ -76,14 +81,21 @@ function addmodules(name)
 end
 
 --Result for processing resource specific chunks
-normal = { -- Gives 6000 chunks on average
+normal = { -- Gives 4000 chunks on average
     {
-      amount_min = 4,
-      amount_max = 8,
+      amount_min = 3,
+      amount_max = 5,
       probability = 1
     }
 }
-expensive = { -- Gives 14000 chunks on average
+chunkamount = 1000
+
+-- Space age makes rockets cost 1/20th as much. Give less materials, same ratio.
+if mods["space-age"] then 
+    chunkamount = 50
+end
+
+expensive = { -- Gives 14000 chunks on average. No longer used.
     {
       amount_min = 12,
       amount_max = 16,
@@ -102,7 +114,7 @@ local minermodule = {
     order = "n[miner-module]",
     rocket_launch_products = {{
         name="asteroid-mixed",
-        amount=1000,
+        amount=chunkamount,
         type="item"
     }},
     send_to_orbit_mode = "automated",
@@ -173,23 +185,23 @@ local processmixed = {
         {
           amount = 4,
           name = "iron-ore-chunk",
-          probability = 0.53,
+          probability = 0.5,
           type="item"
         },
         {
           amount = 6,
           name = "copper-ore-chunk",
-          probability = 0.65,
+          probability = 0.45,
           type="item"
         },
         {
-          amount = 2,
+          amount = 3,
           name = "coal-chunk",
-          probability = 0.21,
+          probability = 0.07,
           type="item"
         }
   },
-  subgroup = "raw-material",
+  subgroup = subchunk,
   type = "recipe"
 }
 
@@ -315,7 +327,7 @@ function addtype(name,atint,desc) --,pictures)
     minerres.name = "miner-module-" .. name
     minerres.rocket_launch_products = {{
         name="asteroid-" .. name,
-        amount=1000,
+        amount=chunkamount,
         type="item"
     }}
     minerres.order = "n[miner-module" .. name .. "]"
@@ -407,4 +419,7 @@ if useminer then
     data:extend{minermodule,minermodulerecipe}
 end
 
-require("prototypes/advanced.lua")
+-- We aren't including advanced mode items.
+if false and settings.startup["astmine-makerockets"].value then
+    require("prototypes/advanced.lua")
+end

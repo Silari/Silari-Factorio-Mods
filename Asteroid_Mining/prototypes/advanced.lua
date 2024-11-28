@@ -1,5 +1,6 @@
 --Make the item and entity for the astmine-target
 
+
 require("scripts/advanced/adv-data-util.lua") -- Has our resource/miner generator functions
 -- **************************
 -- Asteroid Target item/entity/recipe
@@ -531,8 +532,7 @@ local resourcetech = {
     }
 
 -- If advanced mining enabled, add our items.
--- Currently disabled.
-if false and settings.startup["astmine-makerockets"].value then
+if settings.startup["astmine-makerockets"].value then
     data:extend({amtargeti,amtargetr,amtargete,astminmixed,astminmixedr,astminupg5,astminupg25,astminupg5r,astminupg25r,astminupg,astminupgr,resourcetech,upgradetech})
     table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "astmine-target"})
     table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "astmine-mixed"})

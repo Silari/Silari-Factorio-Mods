@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.2
+  Balancing:
+    - Resource amounts have been balanced for the 2.0 and Space Age changes.
+      - Return is roughly 2/3 of the previous amount, to account for the cheaper rocket parts in 2.0. You still get back more resources than the rocket cost, significantly more if productivity bonuses are involved AT ALL.
+        - Resource specific modules give slightly less than the raw cost of the rocket. This will still be a net positive with production modules - just 4 prod 1s in the rocket silo gives ~12.5% net gain.
+      - If Space Age is enabled, you get 1/20th the amount of asteroids from each module, due to needing 1/20th the resources to make a rocket (Half as many parts at 1/10th the cost). This does mean the risk of rolling low is greater, as returns are random to a degree.
+        - Note there are no resource specific modules for Spage Age resources, only the 5 basic nauvis resources (iron, copper, coal, stone, and uranium).
+  Bugfixes:
+    - Fixed that asteroid crushing recipes were only crushable in the Space Age Crushers. They're done in assemblers. This required removing Krastorio 2 crusher support - as there is no 2.0 version this shouldn't matter.
+    - Fixed recipes not unlocking with rocket tech in Space Age. Space Age overwrites the unlock effects, instead of just making the changes it needs.
+    - Mixed chunk recipe is now sorted with the other chunk processing recipes.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.1
   Bugfixes:
     - Advanced mode GUI should no longer show.
