@@ -2,7 +2,13 @@
 require("scripts/recipes.lua")
 
 -- Scripting for advanced mode.
-require("scripts/advanced/adv-mining.lua")
+--require("scripts/advanced/adv-mining.lua")
+function init_mining() -- temp
+    
+end
+function on_config_change() -- temp
+    
+end
 
 function on_changed(event)
     --Updates the recipes when mod configurations change. Ensures recipes on rocket silo tech are enabled/disabled as they should be.

@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.1
+  Bugfixes:
+    - Advanced mode GUI should no longer show.
+    - Tentative fix for the mod not unlocking recipes when used with Space Age. Those recipes are now always unlocked if Space Age is active.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.0
   Info:
     - Release for Factorio 2.0.

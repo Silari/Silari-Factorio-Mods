@@ -55,6 +55,11 @@ require("scripts/category.lua") -- Sets our asteroid processing category based o
 allowprod = settings.startup["astmine-allowprod"].value
 useminer = settings.startup["astmine-enableminer"].value
 hiderec = not settings.startup["astmine-hiderecipes"].value
+recenabled = false
+if mods["space-age"] then 
+    recenabled = true 
+    hiderec = true
+end
 
 local chunkstacksize = 1000
 if mods["space-exploration"] then
@@ -108,7 +113,7 @@ local minermodule = {
 
 --RECIPE: Creating the module to send in the rocket
 local minermodulerecipe = {
-  enabled = false,
+  enabled = recenabled,
   ingredients = {
     {
       name="electric-mining-drill",
@@ -320,7 +325,7 @@ function addtype(name,atint,desc) --,pictures)
     
     --RECIPE: Recipe to make miner module to get resource specific asteroids. Always the default category
     local newminer = {
-        enabled = false,
+        enabled = recenabled,
         ingredients = {
             {
               name="electric-mining-drill",

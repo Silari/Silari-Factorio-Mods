@@ -23,7 +23,7 @@ function on_config_change( event )
             player.gui.top["AMBTN"].destroy()
         end
         local modbut = mod_gui.get_button_flow(player)
-        if settings.startup["astmine-makerockets"].value == true then -- Advanced mode, ensure button exists.
+        if false or settings.startup["astmine-makerockets"].value == true then -- Advanced mode, ensure button exists.
             if not modbut["AMBTN"] then
                 modbut.add{type="button",caption="AM",name="AMBTN",tooltip={"asteroidminingbutton"},style=mod_gui.button_style}
             end

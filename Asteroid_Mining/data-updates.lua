@@ -1,4 +1,4 @@
-require("scripts/advanced/adv-data-util.lua") -- Has our resource/miner generator functions
+--require("scripts/advanced/adv-data-util.lua") -- Has our resource/miner generator functions
 
 require("scripts/groups.lua") -- Handles setting our recipe groups
 
