@@ -394,8 +394,15 @@ if useminer then
     addtype("coal", {a = 0.6,r = 0,g = 0,b = 0})
     addtype("copper-ore", {a = .8,r = 255,g = 60,b = 0})
     addtype("iron-ore", {a = .8,r = 0,g = 140,b = 255})
-    addtype("stone", {a = 0,b = 0,g = 0,b = 0})
-    addtype("uranium-ore", {a = .8,b = 100,g = 180,b = 0})
+    addtype("stone", {a = 0,r = 0,g = 0,b = 0})
+    addtype("uranium-ore", {a = .8,r = 100,g = 180,b = 0})
+
+    -- add space-age ores
+    if mods["space-age"] then 
+        addtype("calcite", {a = 0,r = 180,g = 179,b = 179})
+        -- this might be a little OP...
+        addtype("tungsten-ore", {a = 0,r = 61,g = 44,b = 57})
+    end
 
     --Add Bobs ores if present
     addbobs()
