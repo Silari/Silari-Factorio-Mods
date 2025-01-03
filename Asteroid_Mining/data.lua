@@ -401,7 +401,7 @@ if useminer then
     if mods["space-age"] then 
         addtype("calcite", {a = 0,r = 180,g = 179,b = 179})
         -- this might be a little OP...
-        addtype("tungsten-ore", {a = 0,r = 61,g = 44,b = 57})
+        addtype("tungsten-ore", {a = 0,r = 60,g = 57,b = 118})
     end
 
     --Add Bobs ores if present
