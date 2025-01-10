@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.3
+  Features:
+    - Added miner modules for calcite and tungsten if Space Age is activated. These are probably not balanced. (code provided by ayyEve)
+---------------------------------------------------------------------------------------------------
 Version: 2.0.2
   Balancing:
     - Resource amounts have been balanced for the 2.0 and Space Age changes.
