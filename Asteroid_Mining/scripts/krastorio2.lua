@@ -43,14 +43,16 @@ function setmixed(processmixed)
             {
               amount_min = 3,
               amount_max = 5,
-              probability = 1
+              probability = 1,
+              type = "item"
             }
         }
         expensive = { -- Gives 12000 chunks on average
             {
               amount_min = 9,
               amount_max = 15,
-              probability = 1
+              probability = 1,
+              type = "item"
             }
         }
         return normal, expensive

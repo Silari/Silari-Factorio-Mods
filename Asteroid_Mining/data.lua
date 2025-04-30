@@ -27,31 +27,6 @@
 -- 592.527 ore per minute with everything prod3'd as high as possible. NOT counting mining productivity.
 -- So just above an hour ROI. Not bad.
 
--- Expensive mode - NO LONGER USED:
---Cost of a rocket: 98200 iron ore, 204000 copper ore, 29000 coal
---Needed chunks:     4092 iron chnk, 8500 copper chunk, 1209 coal
---Expected return: 101760 iron ore, 216000 copper ore, 31680 coal
---Expected chunks:   4240 iron chnk, 9000 copper chunk, 1320 coal
---Cost with prod3s: 70143 iron ore, 145715 copper ore, 20715 coal
---Needs 550 iron and 200 copper for asteroid miner
---Total chunks expected: 14560 - 14000 for resource specific miner
-
-
---Bobs mods - Assembling, Electronics, Logistics, Metals, Mining, Modules, Ores, defaultish settings
---Cost of a rocket: 1000 Quartz, 500 Stone, 24250 Copper, 6325 Coal, 2595 tin, 954.5 Galena, 1800 Gold, 2265 Iron Ore, 5000 Bauxite
---Really only Modules (Speed Module) and Electronics (Proc Unit). NO WAIT ALSO METALS.
---Without Modules : 1900 Quartz, 1400 stone, 40800 Copper, 10400 Coal, 12048 tin, 3818 Galena, 1000 Gold, 2140 Iron Ore, 0 Bauxite
---Without Electron: 0 Quartz, 0 stone, 75050 Copper, 9375 Coal, 1250 tin, 0 Galena, 800 Gold, 32225 Iron Ore, 5000 Bauxite
---Without Either  : 0 Quartz, 0 stone, 92500 Copper, 9500 Coal, 0 tin, 0 Galena, 0 Gold, 41100 Iron Ore
---Without Metals  : 0 Quartz, 0 stone, 27250 Copper, 5600 Coal, 0 tin, 0 Galena, 0 Gold, 15265 iron ore
-
---Bobs Expensive
---Cost of a rocket: 1750 Quartz, 1250 Stone, 26833 Copper, 23562 Coal, 4045 Tin, 954.5 Galena, 2333 Gold, 4350 Iron Ore, 10000 Bauxite
---Without Modules : 4000 Quartz, 3500 Stone, 50500 Copper, 33125 Coal, 18515 Tin, 3818 Galena, 1000 Gold, 4700 Iron Ore, 
---Without Electron: 0 Quartz, 0 stone, 174833 Copper, 30750 Coal, 1500 tin, 0 Galena, 1333 Gold, 70350 Iron, 10000 Bauxite
---Without Either  : 0 Quartz, 0 stone, 204000 Copper, 29000 Coal, 0 tin, 0 galena, 0 Gold, 82200 iron
---Without Metals  : 0 quartz, 0 stone, 32833 copper, 22000 coal, 0 tin, 0 galena, 0 gold, 30350 iron
-
 require("scripts/icons.lua") -- Has generateicons function
 
 require("scripts/groups.lua") -- Handles setting our recipe groups
@@ -374,11 +349,20 @@ end
 
 require("scripts/bobs.lua")
 --These will be nil if neither Ores or Plates are installed
-bobnormal, bobexpensive = setmixed(processmixed)
+bobnormal = setmixed(processmixed)
+
 
 require("scripts/simple.lua")
 --These will be nill if Simple Silicon isn't installed
 simpnormal, simpexpensive = setmixed(processmixed)
+
+if krasnormal then
+    normal = krasnormal
+elseif bobnormal then
+    normal = bobnormal
+elseif simpnormal then
+    normal = simpnormal 
+end
 
 require("scripts/angels.lua")
 --We don't currently rebalance mixed asteroid for angels

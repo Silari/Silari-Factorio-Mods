@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.6
+  Features:
+    - Added setting, off by default, to allow quality mining modules to provide quality asteroids, thus leading to infinite quality ores. This is greatly overpowered compared to other methods of obtaining quality materials and thus is not the default.
+      - By default, it will instead multiply the asteroid output by the quality level, double for uncommon, triple for rare, quadruple for epic, and sextuple for legendary.
+    - Support for Bob's mods 2.0. It should work for most combinations of bobs mods, but note that you MUST have Bob's Electronics (bobelectronics), Bob's Mining (bobmining), Bob's Ores (bobores), and Bob's Metals (bobplates) enabled if you have Bob's Revamp (bobrevamp) enabled (bobplates and bobelectronics are the only ones to affect rocket cost significantly unless revamp is enabled).
+      - Bobs with Space Age has not been tested and is not supported.
+    - Minor fixes made to other mods' support to help compatability should they release but no testing has been done.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.5
   Features:
     - Added option to give recipe productivity on resource chunk crushing with each level of mining productivity. Each level of the mining productivity research gives 1% productivity to every chunk crushing recipe (and not the asteroid crushing recipes).

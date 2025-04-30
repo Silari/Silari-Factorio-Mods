@@ -1,6 +1,6 @@
 {
   "name": "Asteroid_Mining",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "factorio_version": "2.0",
   "title": "Asteroid Mining",
   "author": "Silari",
@@ -24,5 +24,5 @@
                    "? space-exploration >= 0.5.89",
                    "? nullius >= 1.0.0",
                    "? space-age >= 2.0",
-                   "base >= 1.1.0"]
+                   "base >= 2.0.22"]
 }

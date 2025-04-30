@@ -55,3 +55,31 @@ function on_changed(event)
 end
 script.on_configuration_changed(on_changed)
 
+function removequality(event)
+    --log(serpent.block(event))
+    if settings.startup['astmine-quality'].value then --event.name == 10 then
+        -- cargo pod inventory
+        thisinv = event.cargo_pod.get_inventory(1)
+        if thisinv then
+            items = thisinv.get_contents()
+            --log(serpent.block(items))
+            for place, itemstack in pairs(items) do
+                --log(serpent.block(itemstack))
+                local i, j = string.find(itemstack.name, "miner%-module")
+                if i == 1 then -- We found the string, it's our module
+                    --log("One of ours!")
+                    if itemstack.quality ~= "anormal" then
+                        thisinv.remove(itemstack)
+                        quallevel = prototypes.quality[itemstack.quality].level + 1
+                        --log(quallevel)
+                        itemstack.quality = "normal"
+                        itemstack.count = quallevel
+                        thisinv.insert(itemstack)
+                    end
+                end
+            end
+            --log(serpent.block(event.cargo_pod.get_inventory(1).get_contents()))
+        end
+    end
+end
+script.on_event(defines.events.on_cargo_pod_finished_ascending, removequality)

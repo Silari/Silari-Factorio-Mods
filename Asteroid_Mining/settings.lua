@@ -23,12 +23,19 @@ data:extend({
         default_value = false,
         order = "[b]astmine-allowprod"
     },
-    { -- Allow productivity modules in chunk processing recipes?
+    { -- Mining prod research effects crushing recipes at 1% per level?
         type = "bool-setting",
         name = "astmine-miningprod",
         setting_type = "startup",
         default_value = false,
         order = "[b]astmine-allowprod2"
+    },
+    { -- Quality mining modules give quality asteroids?
+        type = "bool-setting",
+        name = "astmine-quality",
+        setting_type = "startup",
+        default_value = false,
+        order = "[b]astmine-allowquality"
     },
     { -- Should we use Angels crushers for processing chunks if machines are present?
         type = "bool-setting",
