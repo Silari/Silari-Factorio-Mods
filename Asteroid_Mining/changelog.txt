@@ -1,5 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.0.3
+Version: 2.0.5
+  Features:
+    - Added option to give recipe productivity on resource chunk crushing with each level of mining productivity. Each level of the mining productivity research gives 1% productivity to every chunk crushing recipe (and not the asteroid crushing recipes).
+---------------------------------------------------------------------------------------------------
+Version: 2.0.4
   Bugfixes:
     - Fixed recipe productivity setting not working due to using old method of allowing modules.
 ---------------------------------------------------------------------------------------------------

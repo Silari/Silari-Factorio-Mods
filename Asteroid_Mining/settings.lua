@@ -23,6 +23,13 @@ data:extend({
         default_value = false,
         order = "[b]astmine-allowprod"
     },
+    { -- Allow productivity modules in chunk processing recipes?
+        type = "bool-setting",
+        name = "astmine-miningprod",
+        setting_type = "startup",
+        default_value = false,
+        order = "[b]astmine-allowprod2"
+    },
     { -- Should we use Angels crushers for processing chunks if machines are present?
         type = "bool-setting",
         name = "astmine-crushing",

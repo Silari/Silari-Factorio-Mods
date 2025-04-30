@@ -265,7 +265,9 @@ function addtype(name,atint,desc) --,pictures)
       localised_name = {"recipe-name.resource-chunk", {"item-name." .. name}},
       localised_description = {"recipe-description.resource-chunk", {"item-name." .. name}},
       results = {{name=name,amount=24,type="item"}},
-      type = "recipe"
+      type = "recipe",
+      -- Recipe gets productivity if enabled. 
+      astmineresource = {ignore=true,} -- ignore=true means this won't show up as an unused entry
     }
     if desc == nil then
         desc = ""
