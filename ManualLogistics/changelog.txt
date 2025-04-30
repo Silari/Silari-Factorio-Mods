@@ -1,0 +1,53 @@
+---------------------------------------------------------------------------------------------------
+Version: 2.0.3
+  Info:
+    - With the addition of logistic groups in 2.0 the logic has changed slightly - disabling your personal logistics will never stop the hotkeys from working, BUT requests from logistic groups that are disabled will always be ignored.
+  Features
+    - The hotkeys which grab items now work with items with a grid/inventory. This is thanks to an API change that allows transferring a stack with a quantity limit added in 2.0.46.
+      - The trash hotkey has always worked with these items as it only attempts to move entire stacks anyway.
+      - The setting to disallow items with health/grids has been removed, since it is no longer needed.
+  Bugfixes:
+    - Cargo landing pads and space platform hubs (theoretically) are now a valid source for items.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.2
+  Bugfixes:
+    - Quality should now be supported - all counts/transfers/removals I could find have the quality parameter added.
+    - Some minor code issues which probably wouldn't ever cause issues were fixed.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.1
+  Bugfixes:
+    - Fix error due to change in finding prototype durability.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+  Info:
+    - Initial release for Factorio 2.0.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.5
+  Bugfixes:
+    - Fix error due to missing position when using the new grab items hotkey when no compatible inventories were found near the player.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.4
+  Features:
+    - Added new hotkey to grab items from all entities in reach of the player, with a max range of 20 tiles for performance reasons. Vanilla reach distance is 10.
+    - Added support for the burnt result inventory for boilers, locomotives, and reactors.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.3
+  Bugfixes:
+    - Fix error when attempting to dump trash to a chest that is full. Note this still WILL NOT transfer any items as it still only works on empty slots.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.2
+  Features:
+    - Added a couple of error messages when selected inventory is out of range or on a different force, or when the player does not have a character, which isn't supported.
+  Bugfixes:
+    - Corrected message when all trash slots were successfully transferred. 
+    - Corrected missing quotes from localized string usage.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.1
+  Features:
+    - Added a new hotkey to dump the contents of your trash slots to the selected container. Supported types are chests, vehicles (car/tank), spidertrons, and cargo wagons. It'll only make use of EMPTY slots however as I'm writing this real quick, and it avoids the issues that the requests hotkey has. Items with health or equipment or inventory slots are all supported fine.
+  Bugfixes:
+    - Fixed checks about entity health to prevent transfer of items which support health. By default, items with health can not be transferred due to them being healed as part of the transfer. An option to allow it is provided, but due to a bug (or three) it was always allowed.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+  Info:
+    - Initial release
