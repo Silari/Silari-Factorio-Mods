@@ -742,7 +742,7 @@ end
 
 -- See if what launched was one of our items, and if it was perform appropriate steps.
 function rocklaunch(event)
-    game.print(serpent.block(event))
+    --game.print(serpent.block(event))
     local cargo_pod = event.rocket.cargo_pod
     local surfname = get_sub_surface(cargo_pod.surface.name)
     local inv = cargo_pod.get_inventory(1) -- Get this now since we may need it in the next check
@@ -760,8 +760,8 @@ function rocklaunch(event)
         end
         local surftable = storage.astmine.surfaces[surfname]
         --game.print(serpent.block(surftable))
-        --game.print(#surftable.resources)
-        if #surftable.resources < 1 then
+        --game.print(surftable.resources == nil)
+        if surftable.resources == nil then
             --game.print("Refunding due to no resources")
             badlaunch(cargo_pod.force, event.rocket_silo, {"astmine-not-valid-surface"})
             return
