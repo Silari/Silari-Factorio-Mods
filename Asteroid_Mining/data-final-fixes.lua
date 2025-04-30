@@ -20,11 +20,13 @@ if settings.startup["astmine-miningprod"].value then
               recipe = recipe.name,
               type = "change-recipe-productivity"
             })
-            table.insert(data.raw.technology["mining-productivity-4"].effects, {
-              change = 0.01,
-              recipe = recipe.name,
-              type = "change-recipe-productivity"
-            })
+            if data.raw.technology["mining-productivity-4"] then
+                table.insert(data.raw.technology["mining-productivity-4"].effects, {
+                  change = 0.01,
+                  recipe = recipe.name,
+                  type = "change-recipe-productivity"
+                })
+            end
         end
     end
 end
