@@ -165,6 +165,7 @@ local asteroidmixed = {
 -- RECIPE: Processing the mixed chunks into resource chunks
 local processmixed = {
   allow_decomposition = false,
+  allow_productivity = allowprod,
   category = reccategory,
   icon = "__Asteroid_Mining__/graphics/asteroid-chunk.png",
   icon_size = 64,
@@ -204,10 +205,6 @@ local processmixed = {
   subgroup = subchunk,
   type = "recipe"
 }
-
-if allowprod then
-    addmodules(processmixed.name)
-end
 
 function addtype(name,atint,desc) --,pictures)
     --Make a new item with the given name+"-chunk" and recipe to turn into name
@@ -251,6 +248,7 @@ function addtype(name,atint,desc) --,pictures)
     --RECIPE Turn resource chunk into 24 of item
     local procreschunk = {
       allow_decomposition = false,
+      allow_productivity = allowprod,
       always_show_products = true,
       category = reccategory,
       enabled = hiderec,
@@ -308,6 +306,7 @@ function addtype(name,atint,desc) --,pictures)
     --RECIPE: Processing the asteroid chunks into resource chunks
     local processasteroid = {
       allow_decomposition = false,
+      allow_productivity = allowprod,
       category = reccategory,
       name = "asteroid-" .. name,
       localised_name = {"recipe-name.asteroid-chunk", {"item-name." .. name}},
@@ -368,9 +367,6 @@ function addtype(name,atint,desc) --,pictures)
             table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "asteroid-" .. name})
             table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = name .. suffix})
         end
-    end
-    if allowprod then -- Setting to enable prod module usage in asteroid processing
-        addmodules(processasteroid.name)
     end
 end
 

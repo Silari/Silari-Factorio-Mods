@@ -1,5 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.3
+  Bugfixes:
+    - Fixed recipe productivity setting not working due to using old method of allowing modules.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.3
   Features:
     - Added miner modules for calcite and tungsten if Space Age is activated. These are probably not balanced. (code provided by ayyEve)
 ---------------------------------------------------------------------------------------------------
