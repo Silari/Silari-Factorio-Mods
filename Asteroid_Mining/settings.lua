@@ -65,7 +65,7 @@ data:extend({
         setting_type = "startup",
         default_value = false,
         order = "[v]aastmine-makerockets",
-        hidden = true
+        hidden = false
     },
     { -- Disallow resources that require a fluid to mine. - TODO Add 'NoRandom' value which allows but won't include them in random ore distribution, only with signal set.
         type = "string-setting",
@@ -74,7 +74,7 @@ data:extend({
         default_value = "Allow",
         allowed_values= {"Allow", "Disallow"},
         order = "[v]astmine-disallowfluid",
-        hidden = true -- disabled right now
+        hidden = false -- disabled right now
     },
     { -- All surfaces share information, default is based on Nauvis.
         type = "bool-setting",
@@ -82,16 +82,16 @@ data:extend({
         setting_type = "startup",
         default_value = false,
         order = "[v]astmine-singlesurface",
-        hidden = true -- disabled right now
+        hidden = false -- disabled right now
     },
-    {
+    { -- Amount to transfer for each asteroid targeter action
         type = "int-setting",
         name = "astmine-resamount",
         setting_type = "runtime-global",
         default_value = 500,
         minimum_value = 100,
         maximum_value = 1000,
-        hidden = true,
+        hidden = false,
         order = "[v]astmine-zresamount"
     }
 })

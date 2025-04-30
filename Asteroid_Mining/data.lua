@@ -225,6 +225,7 @@ function addtype(name,atint,desc) --,pictures)
       allow_decomposition = false,
       allow_productivity = allowprod,
       always_show_products = true,
+      auto_recycle = false, -- We don't want this to be reversible, messes with scrap recycling specifically.
       category = reccategory,
       enabled = hiderec,
       energy_required = 5,
@@ -384,6 +385,11 @@ if useminer then
         addtype("calcite", {a = 0,r = 180,g = 179,b = 179})
         -- this might be a little OP...
         addtype("tungsten-ore", {a = 0,r = 60,g = 57,b = 118})
+        -- Scrap, not holminite. We're trying to replace miner's with our results.
+        addtype("scrap", {a = 0, r = 180, g = 10, b = 10})
+        log(serpent.block(data.raw.recipe["asteroid-scrap"].results[1]))
+        data.raw.recipe["asteroid-scrap"].results[1]["amount_max"] = 4
+        log(serpent.block(data.raw.recipe["asteroid-scrap"].results[1]))
     end
 
     --Add Bobs ores if present
@@ -409,6 +415,6 @@ if useminer then
 end
 
 -- We aren't including advanced mode items.
-if false and settings.startup["astmine-makerockets"].value then
+if settings.startup["astmine-makerockets"].value then
     require("prototypes/advanced.lua")
 end

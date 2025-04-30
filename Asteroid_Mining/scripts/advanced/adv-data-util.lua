@@ -68,6 +68,8 @@ function addadvancedtype(name,atint)
     minerres.stack_size = 1
     minerres.subgroup = subminer
     minerres.type = "item"
+    minerres.send_to_orbit_mode = "automated"
+    minerres.weight = 1000000
 
     --RECIPE: Recipe to make miner module to get resource specific asteroids. Always the default category
     --TODO Fix this recipe - multiple energy inputs, inserters, assemblers, roboport, robots, etc.

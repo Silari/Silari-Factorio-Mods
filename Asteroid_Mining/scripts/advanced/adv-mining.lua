@@ -301,7 +301,8 @@ function get_radius_max(surfacename, miningrate)
 end
 
 -- Builds the list of resources for the given surface, or the default table based on nauvis if none given.
-function make_resource_table(surfacename, ressurfacename)
+-- This one iterates the resource list and then tries to see which ones go on the surface.
+function make_resource_table2(surfacename, ressurfacename)
     -- This should attempt to build the resources for this surface from the map generation settings. 
     -- Get the table for this surface and make sure it's initialized if needed
     local restable
@@ -337,6 +338,7 @@ function make_resource_table(surfacename, ressurfacename)
     -- This should get all resource entities so we can add them to our table.
     for name, resource in pairs(prototypes.get_entity_filtered({{filter="type", type="resource"}})) do
         log("Resource name: " .. name)
+        --log(serpent.block(resource))
         -- I don't need to take into account anything about products EXCEPT fluids since we're generating the RESOURCE not the PRODUCTS. All we need to do is adjust amounts for map generation settings.
         local products = resource.mineable_properties.products
         -- We skip resources that make nothing, infinite resources, TODO optionally resources requiring fluids, 
@@ -348,9 +350,8 @@ function make_resource_table(surfacename, ressurfacename)
             else
                 local miningrate = astminebaserate -- Default rate to use for any ore.
                 if resource.autoplace_specification then -- Autoplace specification exists, try to match amounts with commonality of the resource
-                    local rescontrols = mapgen[resource.autoplace_specification.control]
-                    --log("Control name: " .. resource.autoplace_specification.control)
-                    log(serpent.block(rescontrols))
+                    local rescontrols = mapgen[name]
+                    --log(serpent.block(rescontrols))
                     if rescontrols ~= nil then
                         -- Averages frequency, richness, and size values to get the rate adjustment for the surface.
                         local avgrate = (rescontrols.frequency + rescontrols.richness + rescontrols.size) / 3
@@ -359,6 +360,8 @@ function make_resource_table(surfacename, ressurfacename)
                         miningrate = miningrate * rescontrols.richness
                         miningrate = math.floor(miningrate * rescontrols.size) -- We want an integer value, so floor it.
                         miningrate = math.floor(astminebaserate * avgrate)
+                    else
+                        miningrate = 0
                     end
                 end
                 -- We don't want 0 values in here for legibility. While we're at it, at least 1.
@@ -372,7 +375,97 @@ function make_resource_table(surfacename, ressurfacename)
             end
         end
     end
-    log(serpent.block(restable))
+    log(surfacename .. " : " .. serpent.block(restable))
+    return true
+end
+
+
+resourcenames = {vulcanus_coal="coal",
+                 tungsten_ore="tungsten-ore",
+                 sulfuric_acid_geyser="sulfuric-acid-geyser",
+                 aquilo_crude_oil="crude-oil",
+                 fluorine_vent="fluorine-vent",
+                 lithium_brine="lithium-brine"}
+
+-- Builds the list of resources for the given surface, or the default table based on nauvis if none given.
+-- This one checks the autoplace controls for the surface and matches those to resources. Theoretically easier to work with, but i'm not 100% certain anything that spawns will have these controls. So far, they have.
+function make_resource_table(surfacename, ressurfacename)
+    -- This should attempt to build the resources for this surface from the map generation settings. 
+    -- Get the table for this surface and make sure it's initialized if needed
+    local restable
+    log("Making resource table for: " .. (surfacename or "default") .. " using " .. (ressurfacename or surfacename or "nauvis"))
+    if surfacename == nil then
+        restable = storage.astmine.default -- No surface given so we init the default table, which any surface without a table will use.
+        -- This table is based on nauvis settings, because it is guaranteed to exist.
+        surfacename = 'nauvis'
+    else
+        -- By default we don't make a resources table for a surface, so it would use the default. Since we were explicitly told to init a specific surface, we make the table.
+        if storage.astmine.surfaces[surfacename].resources == nil then
+            storage.astmine.surfaces[surfacename].resources = {}
+        end
+        restable = storage.astmine.surfaces[surfacename].resources
+    end
+    -- If we weren't given a surface to base resources on, use the surface we're making the table for
+    if ressurfacename == nil then
+        ressurfacename = surfacename
+    end
+    local surface = game.surfaces[ressurfacename]
+    if surface == nil then
+        log("Invalid surface! " .. ressurfacename)
+        return false
+    end
+    local mapgen = surface.map_gen_settings.autoplace_controls
+    --log(serpent.block(mapgen))
+    if mapgen == nil then
+        log("No autoplace controls for surface " .. surfacename)
+        -- This surface isn't valid since it has no resources. Remove it.
+        set_sub_surface(surfacename,"")
+        return false
+    end
+    -- This should get all resource entities so we can grab the appropriate one.
+    gameresources = prototypes.get_entity_filtered({{filter="type", type="resource"}})
+    for name, control in pairs(mapgen) do
+        log("Resource name: " .. name .. "\n" .. serpent.block(control))
+        name = (resourcenames[name] or name)
+        local resource = gameresources[name]
+        --log(serpent.block(resource))
+        -- I don't need to take into account anything about products EXCEPT fluids since we're generating the RESOURCE not the PRODUCTS. All we need to do is adjust amounts for map generation settings.
+        local products
+        if resource then
+            products = resource.mineable_properties.products
+        end
+        --log(serpent.block(products))
+        -- We skip resources that make nothing, infinite resources, and (TODO optionally) resources requiring fluids 
+        if products == nil  then
+            log("No resource named " .. name)
+        elseif resource.infinite_resource then
+            log("Skipping infinite resource " .. name)
+        elseif givesfluid(products) then
+            log("Skipping fluid resource! " .. name .. " : " .. serpent.block(products))
+        else
+            local miningrate = astminebaserate -- Default rate to use for any ore.
+            if control ~= nil then
+                -- Averages frequency, richness, and size values to get the rate adjustment for the surface.
+                local avgrate = (control.frequency + control.richness + control.size) / 3
+                -- We multiply our base mining rate with the values for frequency, richness, and size.
+                miningrate = miningrate * control.frequency
+                miningrate = miningrate * control.richness
+                miningrate = math.floor(miningrate * control.size) -- We want an integer value, so floor it.
+                miningrate = math.floor(astminebaserate * avgrate)
+            else
+                miningrate = 0
+            end
+            -- We don't want 0 values in here for legibility. While we're at it, at least 1.
+            if miningrate >= 1 then
+                -- Calculated mining rate for this resource. Also the maxrate based on the Space Exploration radius - for non-SE games, this is nil and thus is removed.
+                restable[name] = {["rate"] = miningrate, ["maxrate"] = get_radius_max(surfacename, miningrate)}
+            else
+                restable[name] = nil -- Clears out any value less than one that may have been stored previously
+            end
+            log("added " .. name .. " with rate " .. miningrate)
+        end
+    end
+    log(surfacename .. " table final: " .. serpent.block(restable))
     return true
 end
 
@@ -435,7 +528,7 @@ end
 -- on_force_created -- make a table for the force? No we lazily init the table when needed.
 -- on_forces_merged/on_forces_merging -- probably use the second one JIC as it's slightly earlier and old force still exists at that time. Nothing we do is really affected by the merging, we just need to add the .orbiting and .resources for the two forces.
 
---Ensures that globals were initialized. Called on init and by on_configuration_changed
+--Ensures that storage was initialized. Called on init and by on_configuration_changed
 function init_mining()
     log("Asteroid Mining advanced mining init")
     if not storage.astmine then -- Holds asteroid mining data
@@ -618,7 +711,6 @@ function badlaunch(force, silo, message)
     -- We're going to print an error and attempt to refund the rocket parts.
     force.print(message)
     if silo and silo.valid then
-        -- Currently this has an issue where the silo won't attempt to build another rocket without another part being built. I've reported it to the factorio devs. SHOULD BE FIXED in 1.1.69.
         silo.rocket_parts = silo.rocket_parts + silo.prototype.rocket_parts_required
         force.print({"astmine-refund-parts"}) -- Tell them we've refunded parts
     end
@@ -628,7 +720,9 @@ end
 function asteroiditem(items)
     local isours = true
     -- There's USUALLY only one item in a rocket but possibly more.
-    for itemname, count in pairs(items) do
+    for index, iteminfo in pairs(items) do
+        --game.print(serpent.block(iteminfo))
+        local itemname = iteminfo.name
         local i, j, k, l
         i, j = string.find(itemname, "astmine%-advmodule%-")
         k, l = string.find(itemname, "astmine%-upgrade%-")
@@ -648,58 +742,64 @@ end
 
 -- See if what launched was one of our items, and if it was perform appropriate steps.
 function rocklaunch(event)
-    local rocket = event.rocket
-    local surfname = get_sub_surface(rocket.surface.name) -- Rocket always exists, silo may not.
-    local inv = rocket.get_inventory(defines.inventory.rocket) -- Get this now since we may need it in the next check
+    game.print(serpent.block(event))
+    local cargo_pod = event.rocket.cargo_pod
+    local surfname = get_sub_surface(cargo_pod.surface.name)
+    local inv = cargo_pod.get_inventory(1) -- Get this now since we may need it in the next check
     local items = inv.get_contents() -- Same here.
-    --game.print("Rocklaunch items: " .. tostring(inv.is_empty()))
+    --game.print("Rocklaunch empty? " .. tostring(inv.is_empty()))
     if inv.is_empty() then
         return -- No items were launched, so we don't need to do a thing.
     end
     --game.print("Surf: " .. surfname)
-    if surfname == "" and asteroiditem(items) then -- Not a valid surface to mine with, bad launch.
-        badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-surface"})
-        return
+    if asteroiditem(items) then -- User sent up ONLY our items. Validity checks need to be done.
+        --game.print("Our items")
+        if surfname == "" then -- Not a valid surface to mine with, bad launch.
+            badlaunch(cargo_pod.force, event.rocket_silo, {"astmine-not-valid-surface"})
+            return
+        end
+        local surftable = storage.astmine.surfaces[surfname]
+        --game.print(serpent.block(surftable))
+        --game.print(#surftable.resources)
+        if #surftable.resources < 1 then
+            --game.print("Refunding due to no resources")
+            badlaunch(cargo_pod.force, event.rocket_silo, {"astmine-not-valid-surface"})
+            return
+        end
     end 
     --game.print(serpent.block(inv.get_contents()))
     local updategui = false
-    for itemname, count in pairs(items) do -- There COULD be more than one item in a rocket via modding?
+    for index, itemblock in pairs(items) do -- There COULD be more than one item in a cargopod via modding?
+        itemname = itemblock.name
+        count = itemblock.count
         -- Our resource specific modules all start with 'astmine-module-'
         local i, j = string.find(itemname, "astmine%-advmodule%-")
         if i == 1 then -- We found the string, it's our module
             modtype = string.sub(itemname,j+1)
-            --game.print('asteroid miner: ' .. modtype)
+            game.print('asteroid miner: ' .. modtype)
             -- Does the resource this module is for exist on this surface?
             surftable = storage.astmine.surfaces[surfname]
             if surftable.resources[modtype] == nil then -- if not, it's a bad launch
-                badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-resource"})
+                badlaunch(cargo_pod.force, event.rocket_silo, {"astmine-not-valid-resource"})
                 return
             end
             -- Ensure we've got this force and surface initialized, and get the surface info for this force
-            local forcetable = init_force(rocket.force.name, surfname)
-            --game.print(serpent.block(forcetable))
+            local forcetable = init_force(cargo_pod.force.name, surfname)
+            game.print(serpent.block(forcetable))
             if not forcetable then
                 -- This surface wasn't inited before, and now that we have it's invalid. Do the badlaunch.
-                badlaunch(rocket.force, event.rocket_silo, {"astmine-not-valid-surface"})
+                badlaunch(cargo_pod.force, event.rocket_silo, {"astmine-not-valid-surface"})
                 return
             end
             -- Increase the orbiting miner count for the resource by count of miners - 1 for our types, mods can add others
-            -- We no longer do this. Upgrades are done manually by the player using the GUI.
-            -- if addlevel(forcetable.orbiting,modtype, count) == 3 then
-                -- checkupgrade(forcetable, rocket.force, modtype) -- If the count is 3, see if we can upgrade it with an upgrade module already in orbit.
-            -- end
             addlevel(forcetable.orbiting,modtype, count)
-            -- game.print(serpent.block(forcetable))
+            game.print(serpent.block(forcetable))
             updategui = true -- We need to update player GUIs.
         end
         if itemname == "astmine-mixed" then -- Mixed miner module, slightly special handling. This is always valid if the surface isn't subbed to "", though there may still be 0 resources.
-            local forcetable = init_force(rocket.force.name, surfname)
-            --game.print(serpent.block(forcetable))
+            local forcetable = init_force(cargo_pod.force.name, surfname)
+            -- game.print(serpent.block(forcetable))
             -- Increase the orbiting miner count for the resource by count of miners - currently always 1
-            -- We no longer do this. Upgrades are done manually by the player using the GUI.
-            -- if addlevel(forcetable.orbiting,itemname, count) == 3 then
-                -- checkupgrade(forcetable, rocket.force, itemname) -- If the count is 3, see if we can upgrade it with an upgrade module already in orbit.
-            -- end
             addlevel(forcetable.orbiting,itemname, count)
             -- game.print(serpent.block(forcetable))
             updategui = true -- We need to update player GUIs.
@@ -711,23 +811,18 @@ function rocklaunch(event)
             modtype = string.sub(itemname,j+1)
             --log(modtype)
             if modtype == '5' then
-                local forcetable = init_force(rocket.force.name, surfname)
+                local forcetable = init_force(cargo_pod.force.name, surfname)
                 forcetable.upgrades[5] = forcetable.upgrades[5] + 1
-                --checkupgrade(forcetable, rocket.force)
             elseif modtype == '25' then
-                local forcetable = init_force(rocket.force.name, surfname)
+                local forcetable = init_force(cargo_pod.force.name, surfname)
                 forcetable.upgrades[25] = forcetable.upgrades[25] + 1
-                --checkupgrade(forcetable, rocket.force)            
             end
             updategui = true -- We need to update player GUIs.
         end
         if itemname == "astmine-upgrade-module" then
-            local forcetable = init_force(rocket.force.name, surfname)
+            local forcetable = init_force(cargo_pod.force.name, surfname)
             -- Add 1, which means it's no longer nil. Later we might require multiple upgrade station levels.
             forcetable.upgrades["station"] = (forcetable.upgrades["station"] or 0) + 1
-            -- Since we CAN upgrade stuff now, go ahead and check in case they sent the upgrade first.
-            -- We no longer do this. Upgrades are done manually by the player using the GUI.
-            --checkupgrade(forcetable, rocket.force)
             updategui = true -- We need to update player GUIs.
         end
     end
@@ -736,14 +831,12 @@ function rocklaunch(event)
 end
 
 -- We only register these events if advanced mode is on.
--- Currently disabled.
-if false and settings.startup["astmine-makerockets"].value then
+if settings.startup["astmine-makerockets"].value then
     script.on_event(defines.events.on_research_finished, techdone) -- Give miners if a miner research was completed
     script.on_event(defines.events.on_research_reversed, techundone) -- undo the above if research was uncompleted
     script.on_event(defines.events.on_surface_created,surfcreated)
     script.on_event(defines.events.on_surface_renamed,renamesurface) -- Need to update anything using the old name
-    -- Event for when a rocket has been launched, we need to see what was on it.
-    script.on_event(defines.events.on_rocket_launched,rocklaunch)
+    script.on_event(defines.events.on_rocket_launch_ordered,rocklaunch) -- Check rocket contents for advanced modules
 end
 
 
@@ -753,9 +846,19 @@ end
 -- Gets the requested or random ore and amount from the forces available ores.
 function getore(entcontrol, available, resamount)
     -- Check if entity only wants one ore type, if so return that from table.
-    local sig = entcontrol.get_signal(1)
+    local sig = entcontrol.get_section(1)
+    --game.print(serpent.block(sig))
+    local signal
+    if sig then
+        local filter = sig.filters[1]
+        if filter then
+            --game.print(serpent.block(filter))
+            signal = filter.value
+        end
+    end
+    --game.print(serpent.block(signal))
     local orename
-    if sig.signal == nil then -- No signal has been set, get random ore
+    if signal == nil then -- No signal has been set, get random ore
         -- Get a random ore from our list.
         local ores = {}
         for k in pairs(available) do -- Gather our ore names if they have at least 1 available.
@@ -769,7 +872,7 @@ function getore(entcontrol, available, resamount)
         end
         orename = ores[math.random(#ores)] -- Get a random name from the list of ores with at least 1 available.
     else
-        orename = sig.signal.name
+        orename = signal.name
         avail = available[orename]
         if avail == nil then -- No ore of that type available
             return nil, 0 -- nil as the first return indicates this machine has no ores available.

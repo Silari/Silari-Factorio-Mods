@@ -95,6 +95,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
     local procreschunk = {
       allow_decomposition = false,
       always_show_products = true,
+      auto_recycle = false, -- We don't want this to be reversible, messes with scrap recycling specifically.
       category = amfunc.reccategory,
       enabled = amfunc.hiderec,
       energy_required = 5,
@@ -149,6 +150,7 @@ function amfunc.addtype(name,atint,desc) --,pictures)
     --RECIPE: Processing the asteroid chunks into resource chunks
     local processasteroid = {
       allow_decomposition = false,
+      auto_recycle = false, -- We don't want this to be reversible, messes with scrap recycling specifically.
       category = amfunc.reccategory,
       enabled = amfunc.hiderec,
       name = "asteroid-" .. name,

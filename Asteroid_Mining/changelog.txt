@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.8
+  Features:
+    - Advanced Mode has been re-enabled. As a reminder, this allows sending of asteroid modules to space, which generate ores at a set rate (100/min with base game defaults). These generated resources are then spawned at an Asteroid Targeter, and can be mined normally.
+        - Space Age has not been tested with Advanced Mode. Ores SHOULD be limited to what generates naturally on that surface, and the same restrictions of no infinite or liquid resources. Note that its likely overpowered outside of nauvis, as rate adjustments are not made for normally rarer resources like tungsten.
+        - Other mods resources should similarly be available in Advanced Mode (provided they are not liquid or infinite), but no testing has been done.
+    - Added miner modules for scrap. Scrap modules return more ores overall than the other resource modules, but has added complexity due to needing recyclers. Unlike other modules, this currently returns on average enough circuits, LDS, solid fuel, and ice to make a rocket with the infinite heavy oil present on Fulgora.
+        - To help balance this, scrap asteroids provide only 3.5 scrap chunks on average, for a net of 4200 scrap, as opposed to 4800 for other resources.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.7  
   Bugfixes:
     - Fixed recipe productivity error due to space age removing one of the technologies.

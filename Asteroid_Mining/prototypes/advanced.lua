@@ -1,5 +1,19 @@
 --Make the item and entity for the astmine-target
 
+local satellite = {
+    type = "item",
+    name = "satellite",
+    icon = "__base__/graphics/icons/satellite.png",
+    subgroup = "space-related",
+    order = "d[rocket-parts]-e[satellite]",
+    inventory_move_sound = "__base__/sound/item/mechanical-inventory-move.ogg",
+    pick_sound = "__base__/sound/item/mechanical-inventory-pickup.ogg",
+    drop_sound = "__base__/sound/item/mechanical-inventory-move.ogg",
+    stack_size = 1,
+    weight = 1000000,
+    rocket_launch_products = {{type = "item", name = "space-science-pack", amount = 1000}},
+    send_to_orbit_mode = "automated"
+}
 
 require("scripts/advanced/adv-data-util.lua") -- Has our resource/miner generator functions
 -- **************************
@@ -267,12 +281,14 @@ amtargete.circuit_wire_connection_point = {
 -- **************************
 -- Mixed miner module and recipe
 -- **************************
-local astminmixed = table.deepcopy(data.raw['item']['satellite'])
+local astminmixed = table.deepcopy(satellite)
 astminmixed.icon = "__Asteroid_Mining__/graphics/mining-sat.png"
 astminmixed.name = "astmine-mixed"
 astminmixed.order = "astmine-aaa"
 astminmixed.subgroup = subminer
-astminmixed.rocket_launch_product = nil
+astminmixed.rocket_launch_products = nil
+astminmixed.send_to_orbit_mode = "automated"
+astminmixed.weight = 1000000
 -- Recipe for the upgrade module
 local astminmixedr = {
     enabled = false,
@@ -322,11 +338,13 @@ local astminmixedr = {
 -- **************************
 -- Miner upgrade items and recipes
 -- **************************
-local astminupg5 = table.deepcopy(data.raw['item']['satellite'])
+local astminupg5 = table.deepcopy(satellite)
 astminupg5.name = "astmine-upgrade-5"
 astminupg5.order = "astmine-upgrade-1"
 astminupg5.subgroup = subminer
-astminupg5.rocket_launch_product = nil
+astminupg5.rocket_launch_products = nil
+astminupg5.send_to_orbit_mode = "automated"
+astminmixed.weight = 1000000
 -- Recipe for the upgrade module
 local astminupg5r = {
     enabled = false,
