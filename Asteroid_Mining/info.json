@@ -1,6 +1,6 @@
 {
   "name": "Asteroid_Mining",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "factorio_version": "2.0",
   "title": "Asteroid Mining",
   "author": "Silari",
@@ -20,6 +20,7 @@
 				   "? Dark_Matter_Replicators_Replicated >= 0.8.0",
                    "? omnimatter >= 4.0.0",
                    "? SimpleSilicon >= 1.2.2",
+                   "? Krastorio2 >= 1.0.7",
                    "? creative-mod >= 1.7.2",
                    "? space-exploration >= 0.5.89",
                    "? nullius >= 1.0.0",

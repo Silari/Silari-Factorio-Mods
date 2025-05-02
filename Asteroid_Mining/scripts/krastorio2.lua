@@ -1,9 +1,9 @@
 function addkras()
-    if data.raw.item["raw-imersite"] then -- Krastorio 2 Imersite
-        addtype("raw-imersite", {a = 0.4, r = 150, g = 0, b = 150})
+    if data.raw.item["kr-imersite"] then -- Krastorio 2 Imersite
+        addtype("kr-imersite", {a = 0.4, r = 150, g = 0, b = 150})
     end
-    if data.raw.item["raw-rare-metals"] then -- Krastorio 2 (gold)
-        addtype("raw-rare-metals", {a = 0.4, r = 215, g = 175, b = 0})
+    if data.raw.item["kr-rare-metal-ore"] then -- Krastorio 2 (gold)
+        addtype("kr-rare-metal-ore", {a = 0.4, r = 215, g = 175, b = 0})
     end
 end
 
@@ -47,14 +47,6 @@ function setmixed(processmixed)
               type = "item"
             }
         }
-        expensive = { -- Gives 12000 chunks on average
-            {
-              amount_min = 9,
-              amount_max = 15,
-              probability = 1,
-              type = "item"
-            }
-        }
-        return normal, expensive
+        return normal
     end
 end

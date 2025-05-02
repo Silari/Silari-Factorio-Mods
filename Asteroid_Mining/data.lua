@@ -357,6 +357,11 @@ require("scripts/simple.lua")
 --These will be nill if Simple Silicon isn't installed
 simpnormal, simpexpensive = setmixed(processmixed)
 
+--We don't rebalance the mixed chunks, but we DO adjust the amount from resource specific modules
+require("scripts/krastorio2.lua")
+krasnormal = setmixed(processmixed)
+
+
 if krasnormal then
     normal = krasnormal
 elseif bobnormal then
@@ -403,6 +408,9 @@ if useminer then
 
     --add various single ores from mods
     addsingles()
+
+    --Add Krastorio 2 ores if present
+    addkras()
 
     --add new items
     data:extend{asteroidmixed,processmixed}

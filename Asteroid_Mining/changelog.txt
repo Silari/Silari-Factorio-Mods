@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.10  
+  Features:
+    - Krastorio 2 support has been readded now that Krastorio 2 is out for 2.0.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.9  
   Bugfixes:
     - Fixed bad check that a surface has resources available, causing it to always say the surface was invalid.

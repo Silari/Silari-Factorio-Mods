@@ -198,7 +198,7 @@ function make_resources(makesignal)
             log("Skipping large resource " .. name)
         else
             if givesfluid(results) then -- This should only be non-infinite fluids so maybe keep?
-                log("Skipping fluid resource " .. name .. " : " .. serpent.block(products))
+                log("Skipping fluid resource " .. name ) --.. " : " .. serpent.block(products))
             else
                 log("make_resources: " .. name)
                 local tint = resource.map_color -- Tint icon based on the map color

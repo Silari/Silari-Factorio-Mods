@@ -1,5 +1,6 @@
 --Make the item and entity for the astmine-target
 
+-- A copy of the base game satellite is here, since we can't deep copy it if Space Age is installed.
 local satellite = {
     type = "item",
     name = "satellite",
