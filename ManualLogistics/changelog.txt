@@ -6,6 +6,7 @@ Version: 2.0.3
     - The hotkeys which grab items now work with items with a grid/inventory. This is thanks to an API change that allows transferring a stack with a quantity limit added in 2.0.46.
       - The trash hotkey has always worked with these items as it only attempts to move entire stacks anyway.
       - The setting to disallow items with health/grids has been removed, since it is no longer needed.
+    - Added a setting, changeable by any user, which enables the logistics menu for their force, to allow using this mod prior to logistic robots being researched. Disabling the option won't turn off the logistics menu since it's impossible to tell if it was enabled by something other than this mod.
   Bugfixes:
     - Cargo landing pads and space platform hubs (theoretically) are now a valid source for items.
 ---------------------------------------------------------------------------------------------------

@@ -265,7 +265,7 @@ end
 
 script.on_event("manuallogistics-mult", pre_grab_mult)
 
-function pre_trash_items( event )
+function pre_trash_items(event)
     --log(serpent.block(event))
     player = game.players[event.player_index]
     myent = player.selected
@@ -360,3 +360,15 @@ function trash_items(player, myent, mychar)
         player.create_local_flying_text{text = message, create_at_cursor = true}
     end
 end
+
+function enable_logistics(event)
+    game.print("setting changed " .. event.setting)
+    if event.setting == "ManualLogistics-UnlockLogistics" then
+        -- Neither of these should ever be nil but JIC.
+        if event.player_index and game.get_player(event.player_index) then
+            game.get_player(event.player_index).force.character_logistic_requests = true
+        end
+    end
+end
+
+script.on_event(defines.events.on_runtime_mod_setting_changed, enable_logistics)
