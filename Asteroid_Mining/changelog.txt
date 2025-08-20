@@ -1,5 +1,11 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.0.11  
+Version: 2.0.12
+  Features:
+    - Added setting to use Extended Vanilla: Refining's crushers for crushing asteroids/chunks. Angel's and Krastorio 2 crushing will override if also present and enabled.
+  Bugfixes:
+    - Added hide_from_signal_gui = false to the recipes for crushing resource chunks for iron ore, copper ore, and coal to be used to select those recipes via the circuit network.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.11
   Bugfixes:
     - Fixed asteroid/chunk crushing recipes not using Krastorio 2 crushers even when option was enabled due to rename of the recipe category. This was causing Krastorio 2 to make crushing recipes for them which returned no materials.
 ---------------------------------------------------------------------------------------------------

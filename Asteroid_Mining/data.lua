@@ -185,7 +185,6 @@ function addtype(name,atint,desc) --,pictures)
     --Make a new item with the given name+"-chunk" and recipe to turn into name
     --eg addtype('iron-ore') makes iron-ore-chunk and recipe for iron-ore-chunk->100 iron-ore
     --log("Making new items for " .. name)
-    --ITEM Resource chunk for this item
     
     local suffix = "-chunk"
     -- Sometimes we need to override the default suffix because the item name already exists.
@@ -197,6 +196,11 @@ function addtype(name,atint,desc) --,pictures)
     end
     --log(name .. " name:suffix " .. suffix)
     
+    if name == "iron-ore" or name == "copper-ore" or name == "coal" then
+        hidesignal = false
+    end
+    
+    --ITEM Resource chunk for this item
     local reschunk = {
       icons = {
         {
@@ -291,6 +295,7 @@ function addtype(name,atint,desc) --,pictures)
       localised_description = {"recipe-description.asteroid-chunk", {"item-name." .. name}},
       order = "k[zasteroid-" .. name .. "]",
       ingredients = {{name="asteroid-" .. name,amount=1,type="item"}},
+      hide_from_signal_gui = hidesignal,
       results = mynormal,
       always_show_products = true,
       enabled = hiderec,
@@ -337,7 +342,7 @@ function addtype(name,atint,desc) --,pictures)
         type = "recipe"        
     }
     data:extend{reschunk,procreschunk,newasteroid,processasteroid}
-    if useminer then -- Disabled in 1.0 for the new generation system, once in place.
+    if useminer then -- Basic mode toggle.
         data:extend{minerres,newminer}
         --This makes the miner module available when rocket silo is researched
         table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = "miner-module-" .. name})
@@ -346,15 +351,16 @@ function addtype(name,atint,desc) --,pictures)
             table.insert(data.raw.technology["rocket-silo"].effects, {type = "unlock-recipe", recipe = name .. suffix})
         end
     end
+    hidesignal = nil
 end
 
 require("scripts/bobs.lua")
---These will be nil if neither Ores or Plates are installed
+--These will be nil if none of the supported bobs mods are installed
 bobnormal = setmixed(processmixed)
 
 
 require("scripts/simple.lua")
---These will be nill if Simple Silicon isn't installed
+--These will be nil if Simple Silicon isn't installed
 simpnormal, simpexpensive = setmixed(processmixed)
 
 --We don't rebalance the mixed chunks, but we DO adjust the amount from resource specific modules

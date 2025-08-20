@@ -1,5 +1,10 @@
 reccategory = "crafting" -- Recipe category for asteroid processing to use
 
+-- If ev-refining is installed and crafting category for crushing exists, we'll use that for processing chunks
+if settings.startup["astmine-evcrushing"] and data.raw["recipe-category"]["crushing1"] then
+    reccategory = "crushing1"
+end
+
 -- If Krastorio2 is installed and crafting category for crushing exists, we'll use that for processing chunks
 if settings.startup["astmine-k2crushing"].value and data.raw["recipe-category"]["kr-crushing"] then
     reccategory = "kr-crushing"

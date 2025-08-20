@@ -40,6 +40,7 @@ local amtargeti = {
     place_result = "astmine-target",
     enabled = true
 }
+
 -- RECIPE: recipe for item
 local amtargetr = {
     enabled = false,
