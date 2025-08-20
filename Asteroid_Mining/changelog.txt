@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.13
+  Bugfixes:
+    - Fixed new mining productivity researches in Krastorio 2/Spaced Out not providing the recipe productivity bonuses.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.12
   Features:
     - Added setting to use Extended Vanilla: Refining's crushers for crushing asteroids/chunks. Angel's and Krastorio 2 crushing will override if also present and enabled.

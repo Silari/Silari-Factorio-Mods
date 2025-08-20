@@ -27,6 +27,30 @@ if settings.startup["astmine-miningprod"].value then
                   type = "change-recipe-productivity"
                 })
             end
+            if data.raw.technology["mining-productivity-6"] then
+                log("Adding 6!")
+                table.insert(data.raw.technology["mining-productivity-6"].effects, {
+                  change = 0.01,
+                  recipe = recipe.name,
+                  type = "change-recipe-productivity"
+                })
+            end
+            if data.raw.technology["mining-productivity-11"] then
+                log("Adding 11!")
+                table.insert(data.raw.technology["mining-productivity-11"].effects, {
+                  change = 0.01,
+                  recipe = recipe.name,
+                  type = "change-recipe-productivity"
+                })
+            end
+            if data.raw.technology["mining-productivity-16"] then
+                log("Adding 16!")
+                table.insert(data.raw.technology["mining-productivity-16"].effects, {
+                  change = 0.01,
+                  recipe = recipe.name,
+                  type = "change-recipe-productivity"
+                })
+            end
         end
     end
 end
