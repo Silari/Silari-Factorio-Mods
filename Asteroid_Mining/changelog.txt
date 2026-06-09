@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.14
+  Bugfixes:
+    - Fixed a crash from any technology being (un)researched before storage tables have been created.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.13
   Bugfixes:
     - Fixed new mining productivity researches in Krastorio 2/Spaced Out not providing the recipe productivity bonuses.

@@ -588,6 +588,7 @@ end)
 function techdone(event)
     --game.print(serpent.block(event) .. " : techname : " .. event.research.name)
     -- Tech result is what kind of miner to give
+    if storage.astmine = nil then return end
     local techresult = storage.astmine.research[event.research.name]
     --game.print(techresult)
     if techresult == nil then return end -- Not in our table, ignore
@@ -600,6 +601,7 @@ end
 
 function techundone(event)
     --game.print(serpent.block(event) .. " : techname : " .. event.research.name)
+    if storage.astmine = nil then return end
     local techresult = storage.astmine.research[event.research.name]
     if techresult == nil then return end -- Not in our table, ignore
     local forcename = event.research.force.name
