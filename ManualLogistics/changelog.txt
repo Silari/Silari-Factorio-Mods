@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.6
+  Bugfixes:
+    - ACTUALLY (hopefully) fixed crash due to check for space platform hub.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.5
+  Bugfixes:
+    - Fixed crash due to check for space platform when player surface couldn't be located.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.4
+  Bugfixes:
+    - Transfers should no longer work if the player is in a space platform hub. This would allow the player to fill their inventory before landing which has balance implications since it is expected that the player have no inventory when landing.
+      - This will still work if the player character is on the platform, but not inside the hub, for example if they were teleported onto the surface directly.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.3
   Info:
     - With the addition of logistic groups in 2.0 the logic has changed slightly - disabling your personal logistics will never stop the hotkeys from working, BUT requests from logistic groups that are disabled will always be ignored.

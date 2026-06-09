@@ -11,6 +11,10 @@ function on_hotkey( event )
         player.print({"ManLog-NoPlayer"})
         return
     end
+    if player.hub then
+        player.print({"ManLog-InHub"})
+        return
+    end
     -- Nothing selected - do nothing.
     if myent == nil then
         return
@@ -362,7 +366,7 @@ function trash_items(player, myent, mychar)
 end
 
 function enable_logistics(event)
-    game.print("setting changed " .. event.setting)
+    --game.print("setting changed " .. event.setting)
     if event.setting == "ManualLogistics-UnlockLogistics" then
         -- Neither of these should ever be nil but JIC.
         if event.player_index and game.get_player(event.player_index) then
