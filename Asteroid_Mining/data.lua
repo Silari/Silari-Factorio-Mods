@@ -181,16 +181,28 @@ local processmixed = {
   type = "recipe"
 }
 
-function addtype(name,atint,desc) --,pictures)
+function addtype(name,atint,desc,resourcetype) --,pictures)
     --Make a new item with the given name+"-chunk" and recipe to turn into name
     --eg addtype('iron-ore') makes iron-ore-chunk and recipe for iron-ore-chunk->100 iron-ore
-    --log("Making new items for " .. name)
+    --log("Making new items for " .. name .. " " .. (resourcetype or ""))
+
+    -- If no description is provided, we use a blank one.
+    if desc == nil then
+        desc = ""
+    end
     
-    local suffix = "-chunk"
+    -- This adds support for fluids. Default is an item type, which most things are.
+    resourcetype = (resourcetype or "item")
+    
+    -- Fluids are basically 10 to a unit with how the math works.
+    resamount = 24
+    if resourcetype == "fluid" then resamount = 240 end
+
     -- Sometimes we need to override the default suffix because the item name already exists.
     -- TODO - change this so it automatically detects name-chunk item exists and change suffix - BUT
     --  that would cause issues if 'name' is in more than one module - eg angels/bobs overlap, bob+bzlead, etc.
     --  Maybe add in something that tracks what 'name's have been added and skip it if it has.
+    local suffix = "-chunk"
     if string.find(name,"angels-ore",1,true) then
         suffix = "-chunk-am"
     end
@@ -216,8 +228,8 @@ function addtype(name,atint,desc) --,pictures)
         }
       },
       name = name .. suffix,
-      localised_name = {"item-name.resource-chunk", {"item-name." .. name}},
-      localised_description = {"item-description.resource-chunk", {"item-name." .. name}},
+      localised_name = {"item-name.resource-chunk", {resourcetype .. "-name." .. name}},
+      localised_description = {"item-description.resource-chunk", {resourcetype .. "-name." .. name}},
       order = "d[asteroidchunk-" .. name .. "]",
       stack_size = 25,
       subgroup = subchunk,
@@ -242,15 +254,15 @@ function addtype(name,atint,desc) --,pictures)
       },
       name = name .. suffix,
       order = "d[asteroidchunk-" .. name .. "]",
-      localised_name = {"recipe-name.resource-chunk", {"item-name." .. name}},
-      localised_description = {"recipe-description.resource-chunk", {"item-name." .. name}},
-      results = {{name=name,amount=24,type="item"}},
+      localised_name = {"recipe-name.resource-chunk", {resourcetype .. "-name." .. name}},
+      localised_description = {"recipe-description.resource-chunk", {resourcetype .. "-name." .. name}},
+      results = {{name=name,amount=resamount,type=resourcetype}},
       type = "recipe",
       -- Recipe gets productivity if enabled. 
       astmineresource = {ignore=true,} -- ignore=true means this won't show up as an unused entry
     }
-    if desc == nil then
-        desc = ""
+    if resourcetype == "fluid" then
+        procreschunk.category = "advanced-crafting"
     end
     
     --ITEM Resource specific asteroid chunk.
@@ -269,13 +281,14 @@ function addtype(name,atint,desc) --,pictures)
         }
       },
       name = "asteroid-" .. name,
-      localised_name = {"item-name.asteroid-chunk", {"item-name." .. name}},
-      localised_description = {"item-description.asteroid-chunk", {"item-name." .. name}, desc},
+      localised_name = {"item-name.asteroid-chunk", {resourcetype .. "-name." .. name}},
+      localised_description = {"item-description.asteroid-chunk", {resourcetype .. "-name." .. name}, desc},
       order = "k[zasteroid-" .. name .. "]",
       stack_size = chunkstacksize,
       subgroup = subchunk,
       type = "item"        
     }
+    
     --log(serpent.block(newasteroid))
     --We need to set the result name to the name of our resource chunk
     mynormal = table.deepcopy(normal)
@@ -290,15 +303,15 @@ function addtype(name,atint,desc) --,pictures)
       allow_decomposition = false,
       allow_productivity = allowprod,
       category = reccategory,
+      enabled = hiderec,
       name = "asteroid-" .. name,
-      localised_name = {"recipe-name.asteroid-chunk", {"item-name." .. name}},
-      localised_description = {"recipe-description.asteroid-chunk", {"item-name." .. name}},
+      localised_name = {"recipe-name.asteroid-chunk", {resourcetype .. "-name." .. name}},
+      localised_description = {"recipe-description.asteroid-chunk", {resourcetype .. "-name." .. name}},
       order = "k[zasteroid-" .. name .. "]",
       ingredients = {{name="asteroid-" .. name,amount=1,type="item"}},
       hide_from_signal_gui = hidesignal,
       results = mynormal,
       always_show_products = true,
-      enabled = hiderec,
       energy_required = 10,
       --subgroup = subchunk,
       type = "recipe"
@@ -314,8 +327,13 @@ function addtype(name,atint,desc) --,pictures)
     }}
     minerres.order = "n[miner-module" .. name .. "]"
     minerres.icons = generateicons(name,atint) --Generate icon layers using given item
-    minerres.localised_name = {"item-name.miner-module", {"item-name." .. name}}
-    minerres.localised_description = {"item-description.miner-module", {"item-name." .. name}}
+    minerres.localised_name = {"item-name.miner-module", {resourcetype .. "-name." .. name}}
+    minerres.localised_description = {"item-description.miner-module", {resourcetype .. "-name." .. name}}
+    
+    if minerres.icons == false then
+        log("Generated icons failed. Item " .. name .. " could not be added.")
+        return
+    end
     
     --RECIPE: Recipe to make miner module to get resource specific asteroids. Always the default category
     local newminer = {
@@ -333,14 +351,18 @@ function addtype(name,atint,desc) --,pictures)
             },
             {
               name=name,
-              amount=5,
-              type="item"
+              amount=math.ceil(resamount/5),
+              type=resourcetype
             }
         },
         name = "miner-module-" .. name,
         results = {{name="miner-module-" .. name,amount=1,type="item"}},
         type = "recipe"        
     }
+    if resourcetype == "fluid" then
+        newminer.category = "advanced-crafting"
+    end
+    
     data:extend{reschunk,procreschunk,newasteroid,processasteroid}
     if useminer then -- Basic mode toggle.
         data:extend{minerres,newminer}
@@ -390,7 +412,7 @@ if useminer then
     addtype("iron-ore", {a = .8,r = 0,g = 140,b = 255})
     addtype("stone", {a = 0,r = 0,g = 0,b = 0})
     addtype("uranium-ore", {a = .8,r = 100,g = 180,b = 0})
-
+    
     -- add space-age ores
     if mods["space-age"] then 
         addtype("calcite", {a = 0,r = 180,g = 179,b = 179})
@@ -398,9 +420,10 @@ if useminer then
         addtype("tungsten-ore", {a = 0,r = 60,g = 57,b = 118})
         -- Scrap, not holminite. We're trying to replace miner's with our results.
         addtype("scrap", {a = 0, r = 180, g = 10, b = 10})
-        log(serpent.block(data.raw.recipe["asteroid-scrap"].results[1]))
+        --log(serpent.block(data.raw.recipe["asteroid-scrap"].results[1]))
         data.raw.recipe["asteroid-scrap"].results[1]["amount_max"] = 4
-        log(serpent.block(data.raw.recipe["asteroid-scrap"].results[1]))
+        --log(serpent.block(data.raw.recipe["asteroid-scrap"].results[1]))
+        addtype("lithium-brine", {a = .8,r = 205,g = 218,b = 205},nil,"fluid")
     end
 
     --Add Bobs ores if present

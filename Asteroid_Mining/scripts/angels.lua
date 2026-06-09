@@ -14,7 +14,7 @@ function addangels()
     
     --Adds flourite ore for flouric acid
     if mods["angelspetrochem"] then
-        addtype("fluorite-ore", {a = 0.4, r=90, g=0, b=90})
+        addtype("angels-fluorite-ore", {a = 0.4, r=90, g=0, b=90})
     end
     
     --Angel's Smelting adds all the various ores

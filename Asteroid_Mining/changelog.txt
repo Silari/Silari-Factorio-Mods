@@ -1,4 +1,32 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.20
+  Bugfixes:
+    - Corrected name of tungsten-ore from Bob's mods due to a change in 2.0.
+    - Fixed crash when attempting to create modules for an ore that does not exist. The error is instead logged and the item skipped.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.19
+  Bugfixes:
+    - Fixed missing comma in addmodules that caused in error if any mod attempted to use it.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.18
+  Bugfixes:
+    - Fixed Angel's Petrochem compatability due to internal name change of fluorite ore.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.17
+  Bugfixes:
+    - Fixed check for quality modules setting was errouneously flipped.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.16
+  Features:
+    - Basic Mode now partially supports liquid products for asteroid chunks. The mining module and final processing are in the advanced-crafting category, rather than the default crafting one, to support fluid in/outputs.
+    - Added lithium brine module to basic mode when Space Age is installed.
+  Bugfixes:
+    - The addmodule script should once again be working after the 2.0 changes.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.15
+  Bugfixes:
+    - Fixed typo in the previous fix.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.14
   Bugfixes:
     - Fixed a crash from any technology being (un)researched before storage tables have been created.

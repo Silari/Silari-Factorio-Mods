@@ -3,12 +3,14 @@ function generateicons(name,atint)
     --log("Making " .. name .. " " .. serpent.block(data.raw.item[name]))
     if data.raw.item[name] then -- MOST things we generate are items
         itempath = data.raw.item
+    elseif data.raw.fluid[name] then
+        itempath = data.raw.fluid
     else -- tenemut isn't, it's a tool. A big tool.
         itempath = data.raw.tool
     end
     if itempath[name] == nil then
         --log(serpent.block(data.raw))
-        log("Generate Icons called but an item or tool with that name could not be found. Item name: " .. name)
+        log("Generate Icons called but an item/fluid/tool with that name could not be found. Item name: " .. name)
         return false
     end
     --log(serpent.block(itempath[name]))

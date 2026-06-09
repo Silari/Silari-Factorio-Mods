@@ -15,7 +15,7 @@ function addbobs()
         addtype("bob-silver-ore", {a = 0.4, r = 128, g = 128, b = 144})
         addtype("bob-thorium-ore", {a = 0.4, r = 222, g = 255, b = 0})
         addtype("bob-tin-ore", {a = 0.4, r = 60, g = 60, b = 60})
-        addtype("bob-tungsten-ore", {a = 0.4, r = 101, g = 67, b = 33})
+        addtype("tungsten-ore", {a = 0.4, r = 101, g = 67, b = 33})
         addtype("bob-zinc-ore", {a = 0.4, r=0,g=255,b=255})
 
         --Gem ores - may remove the mixed gems since it's much less useful
@@ -87,7 +87,7 @@ function setmixed(processmixed)
             },
             { -- 2640 tungsten, 110 chunks
               amount = 5,
-              name = "bob-tungsten-ore-chunk",
+              name = "tungsten-ore-chunk",
               probability = 0.022,
               type = "item"
             },
